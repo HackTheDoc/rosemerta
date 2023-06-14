@@ -8,7 +8,9 @@ Application app;
 int main() {
     app.init();
 
-    app.run();
+    app.start();
+
+    while (Application::isRunning) app.run();
 
     app.kill();
 

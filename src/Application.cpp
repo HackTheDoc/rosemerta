@@ -17,7 +17,8 @@ const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
     {"clear"    , Application::Command::CLEAR       },
     {"catalog"  , Application::Command::CATALOG     },
     {"contacts" , Application::Command::CONTACTS    },
-    {"id"       , Application::Command::ID          }
+    {"id"       , Application::Command::ID          },
+    {"set"      , Application::Command::SET         }
 };
 
 Application::Application() {}
@@ -32,9 +33,9 @@ void Application::init() {
 }
 
 void Application::start() {
-    clear();
+    commandClear();
 
-    printHelper();
+    commandHelp();
 
     isRunning = true;
 }
@@ -64,26 +65,29 @@ void Application::eval(std::string input) {
 
     switch (c) {
     case Application::Command::HELP:
-        printHelper();
+        commandHelp();
         break;
     case Application::Command::EXIT:
-        exit();
+        commandExit();
         break;
     case Application::Command::CLEAR:
-        clear();
+        commandClear();
         break;
     case Application::Command::CATALOG:
-        printCatalog();
+        commandCatalog();
         break;
     case Application::Command::CONTACTS:
-        printContacts();
+        commandContacts();
         break;
     case Application::Command::ID:
-        findID();
+        commandID();
+        break;
+    case Application::Command::SET:
+        commandSet();
         break;
     case Application::Command::UNKNOWN:
     default:
-        printError("command \""+buffer.at(0)+"\" is unkown");
+        Error("command \""+buffer.at(0)+"\" is unkown");
         break;
     }
 }
@@ -105,79 +109,38 @@ void Application::parseInput() {
     }
 }
 
-void Application::printError(std::string e) {
+void Application::Error(std::string e) {
     std::cout << "\033[31m";
     std::cout << "ERROR: " << e << std::endl;
     std::cout << "\033[0m";
 }
 
-void Application::printHelper() {
-std::cout << "Usage:"                                                                                   << std::endl;
-    std::cout << "  <command> [options]"                                                                << std::endl;
+void Application::commandHelp() {
+    std::cout << "Usage:"                                                                                   << std::endl;
+    std::cout << "  <command> [options]"                                                                    << std::endl;
 
-    std::cout << "Command:"                                                                             << std::endl;
-    std::cout << "  help                Show this screen"                                               << std::endl;
-    
-    std::cout << "  exit                Quit the application"                                           << std::endl;
-    
-    std::cout << "  clear               Clear the terminal"                                             << std::endl;
-    
-    std::cout << "  catalog <  >        Display the entire catalog"                                     << std::endl;
-    std::cout << "          <id>        Display a specific identity from the catalog"                   << std::endl;
-    
-    std::cout << "  contacts <id>       Display known contacts of a specific registered identity"       << std::endl;
-
-    std::cout << "  id <username>       Find the id of a referenced username"                           << std::endl;
-    std::cout << "     <name>           Find the id of a referenced name"                               << std::endl;
+    std::cout << "Command:"                                                                                     << std::endl;
+    std::cout << "  help                        Show this screen"                                               << std::endl;
+    std::cout << "  exit                        Quit the application"                                           << std::endl;
+    std::cout << "  clear                       Clear the terminal"                                             << std::endl;
+    std::cout << "  catalog <  >                Display the entire catalog"                                     << std::endl;
+    std::cout << "          <id>                Display a specific identity from the catalog"                   << std::endl;
+    std::cout << "  contacts <id>               Display known contacts of a specific registered identity"       << std::endl;
+    std::cout << "  id <name>                   Find the id of a registered identity"                           << std::endl;
+    std::cout << "  set <id> <param> <value>    Set a new value for a specific param of a specific identity"    << std::endl;
 }
 
-void Application::printCatalog() {
-    if (buffer.size() == 1) {
-        std::cout << *catalog << std::endl;
-        return;
-    }
-
-    int id = stoi(buffer.at(1));
+void Application::commandExit() {
+    #ifdef _WIN32
+        std::system("cls");
+    #else
+        std::system("clear");
+    #endif
     
-    if (catalog->count(id) == 0) {
-        printError("unknown id \""+buffer.at(1)+"\""); 
-        return;
-    }
-
-    std::cout << *catalog->at(id) << std::endl;
+    isRunning = false;
 }
 
-void Application::printContacts() {
-    if (buffer.size() < 2) {
-        printError("missing parameter");
-        return;
-    }
-
-    int id = stoi(buffer.at(1));
-    
-    if (catalog->count(id) == 0) {
-        printError("unknown id \""+buffer.at(1)+"\""); 
-        return;
-    }
-    
-    catalog->at(id)->printContacts();
-}
-
-void Application::findID() {
-    if (buffer.size() < 2) {
-        printError("missing parameter");
-        return;
-    }
-
-    std::set<int> ids = catalog->findID(buffer.at(1));
-
-    std::cout << "IDs associate with name " << buffer.at(1) << ":" << std::endl;
-    for (const int& id : ids) {
-        std::cout << "  " << id << std::endl;
-    }
-}
-
-void Application::clear() {
+void Application::commandClear() {
     #ifdef _WIN32
         std::system("cls");
     #else
@@ -193,12 +156,74 @@ void Application::clear() {
     std::cout << "|_______________________________________________|" << std::endl;
 }
 
-void Application::exit() {
-    #ifdef _WIN32
-        std::system("cls");
-    #else
-        std::system("clear");
-    #endif
+void Application::commandCatalog() {
+    if (buffer.size() == 1) {
+        std::cout << *catalog << std::endl;
+        return;
+    }
+
+    int id = stoi(buffer.at(1));
     
-    isRunning = false;
+    if (catalog->count(id) == 0) {
+        Error("unknown id \""+buffer.at(1)+"\""); 
+        return;
+    }
+
+    std::cout << *catalog->at(id) << std::endl;
+}
+
+void Application::commandContacts() {
+    if (buffer.size() < 2) {
+        Error("missing parameter(s)");
+        return;
+    }
+
+    int id = stoi(buffer.at(1));
+    
+    if (catalog->count(id) == 0) {
+        Error("unknown id \""+buffer.at(1)+"\""); 
+        return;
+    }
+    
+    catalog->at(id)->printContacts();
+}
+
+void Application::commandID() {
+    if (buffer.size() < 2) {
+        Error("missing parameter(s)");
+        return;
+    }
+
+    std::set<int> ids = catalog->findID(buffer.at(1));
+
+    std::cout << "IDs associate with name " << buffer.at(1) << ":" << std::endl;
+    for (const int& id : ids) {
+        std::cout << "  " << id << std::endl;
+    }
+}
+
+void Application::commandSet() {
+    // set <id> <param> <value>
+    if (buffer.size() < 4) {
+        Error("missing parameter(s)");
+        std::cout << "set <id> <param> <value>"                         << std::endl;
+        std::cout << "          name [string]"                          << std::endl;
+        std::cout << "          lastname [string]"                      << std::endl;
+        std::cout << "          age [int]"                              << std::endl;
+        std::cout << "          birthday [DD-MM-YY] [MM-YY] [DD-MM]"    << std::endl;
+        std::cout << "          status [alive] [dead] [unknown]"        << std::endl;
+        return;
+    }
+
+    int id = stoi(buffer.at(1));
+    std::string param = buffer.at(2);
+    std::string value = buffer.at(3);
+
+    if (param == "username") catalog->at(id)->setUsername(value);
+    else if (param == "name") catalog->at(id)->setName(value);
+    else if (param == "lastname") catalog->at(id)->setLastname(value);
+    else if (param == "age") catalog->at(id)->setAge(stoi(value));
+    else if (param == "birthday") catalog->at(id)->setBirthday(value);
+    else if (param == "status") catalog->at(id)->setStatus(value);
+    else Error("unknown parameter \""+param+"\"");
 }

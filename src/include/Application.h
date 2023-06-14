@@ -16,7 +16,8 @@ public:
         CLEAR,
         CATALOG,
         CONTACTS,
-        ID
+        ID,
+        SET
     };
 
     static sqlite3* database;
@@ -47,11 +48,12 @@ private:
 
     void parseInput();
 
-    void printError(std::string e);
-    void printHelper();
-    void printCatalog();
-    void printContacts();
-    void findID();
-    void clear();
-    void exit();
+    void Error(std::string e);
+    void commandHelp();
+    void commandExit();
+    void commandClear();
+    void commandCatalog();
+    void commandContacts();
+    void commandID();
+    void commandSet();
 };

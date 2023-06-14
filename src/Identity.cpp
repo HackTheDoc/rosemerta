@@ -65,14 +65,10 @@ void Identity::setAge(int age) {
 }
 
 void Identity::setBirthday(std::string birthday) {
-    std::vector<int> buffer;
-    std::string s;
-    std::stringstream ss(birthday);
-    while (getline(ss, s, '-')) {
-        buffer.push_back(stoi(s));
-    }
-
-    this->birthday.setDate(buffer.at(0), buffer.at(1), buffer.at(2));
+    int d,m,y;
+    d = m = y = -1;
+    sscanf(birthday.c_str(), "%d-%d-%d", &d,&m,&y);
+    this->birthday.setDate(d, m, y);
 }
 
 void Identity::setStatus(int s) {
@@ -87,6 +83,12 @@ void Identity::setStatus(int s) {
         status = Identity::Status::UNKNOWN;
         break;
     }
+}
+
+void Identity::setStatus(std::string s) {
+    if (s == "alive") status = Identity::Status::ALIVE;
+    else if(s == "dead") status = Identity::Status::DEAD;
+    else if (s == "unknown") status = Identity::Status::UNKNOWN;
 }
 
 void Identity::addContact(Contact::Type type, std::string detail) {

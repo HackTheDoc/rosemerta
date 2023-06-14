@@ -34,6 +34,7 @@ public:
     void setAge(int age);
     void setBirthday(std::string birthday);
     void setStatus(int s);
+    void setStatus(std::string s);
 
     void addContact(Contact::Type type, std::string detail);
     void printContacts();

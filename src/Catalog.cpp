@@ -35,10 +35,27 @@ void Catalog::loadIdentities() {
         id->setStatus(sqlite3_column_int(stmt, 6));
         items[id->getID()] = id;
     }
+
+    sqlite3_finalize(stmt);
 }
 
 void Catalog::loadContacts() {
-    // TODO
+    for (auto item : items) {
+        std::string sql = "SELECT * FROM contact WHERE owner = ? ORDER BY type DESC;";
+        sqlite3_stmt* stmt;
+        
+        sqlite3_prepare_v2(Application::database, sql.c_str(), -1, &stmt, nullptr);
+        sqlite3_bind_int(stmt, 1, item.first);
+
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            item.second->addContact(
+                (Contact::Type)sqlite3_column_int(stmt, 1),
+                (const char*)sqlite3_column_text(stmt, 2)
+            );
+        }
+
+        sqlite3_finalize(stmt);
+    }
 }
 
 void Catalog::loadLocations() {
@@ -56,6 +73,10 @@ Identity* Catalog::at(const int& id) {
     }
     
     return nullptr;
+}
+
+int Catalog::count(const int& id) {
+    return items.count(id);
 }
 
 void Catalog::clear() {
@@ -82,9 +103,10 @@ std::unordered_map<int, Identity*>::const_iterator Catalog::end() const noexcept
 }
 
 std::ostream& operator<<(std::ostream& stream, const Catalog& c) {
-    stream << " ---------- Catalog ----------" << std::endl;
+    stream << " ---------- Catalog ----------";
     
     for (auto i : c.items) {
+        stream << std::endl;
         stream << *i.second << std::endl;
     }
     

@@ -23,6 +23,8 @@ public:
 
     Identity* at(const int& id);
 
+    int count(const int& id);
+
     void clear();
 
     std::unordered_map<int, Identity*>::iterator begin() noexcept;

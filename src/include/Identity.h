@@ -2,7 +2,7 @@
 
 #include <iostream>
 #include <string>
-#include <queue>
+#include <stack>
 
 #include "Contact.h"
 #include "Date.h"
@@ -28,6 +28,9 @@ public:
     void setBirthday(std::string birthday);
     void setStatus(int s);
 
+    void addContact(Contact::Type type, std::string detail);
+    void printContacts();
+
     friend std::ostream& operator<<(std::ostream& stream, const Identity& i);
 
 private:
@@ -42,5 +45,5 @@ private:
 
     Identity::Status status;
 
-    std::priority_queue<Contact*, std::vector<Contact*>, std::less<Contact::Type>> contacts;
+    std::stack<Contact*> contacts;
 };

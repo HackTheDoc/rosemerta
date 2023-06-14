@@ -1,7 +1,9 @@
 #include "include/Application.h"
 #include "include/Catalog.h"
+#include "include/Identity.h"
 
 #include <iostream>
+#include <sstream>
 #include <cstdlib>
 
 sqlite3* Application::database = nullptr;
@@ -13,7 +15,8 @@ const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
     {"help"     , Application::Command::HELP        },
     {"exit"     , Application::Command::EXIT        },
     {"clear"    , Application::Command::CLEAR       },
-    {"catalog"  , Application::Command::CATALOG     }
+    {"catalog"  , Application::Command::CATALOG     },
+    {"contacts" , Application::Command::CONTACTS    }
 };
 
 Application::Application() {}
@@ -36,12 +39,9 @@ void Application::start() {
 }
 
 void Application::run() {
-    std::cout << "\n> ";
+    parseInput();
 
-    std::string input;
-    std::cin >> input;
-
-    eval(input);
+    eval(buffer.at(0));
 }
 
 void Application::kill() {
@@ -74,29 +74,81 @@ void Application::eval(std::string input) {
     case Application::Command::CATALOG:
         printCatalog();
         break;
+    case Application::Command::CONTACTS:
+        printContacts();
+        break;
     case Application::Command::UNKNOWN:
     default:
-        unknownCommandError(input);
+        printError("command \""+buffer.at(0)+"\" is unkown");
         break;
     }
 }
 
-void Application::unknownCommandError(std::string c) {
-    std::cout << "ERROR: command \"" << c << "\" is unknown" << std::endl;
+void Application::parseInput() {
+    buffer.clear();
+
+    std::cout << "\033[32m";
+    std::cout << "> ";
+    std::cout << "\033[0m";
+
+    std::string raw;
+    std::getline(std::cin, raw);
+
+    std::stringstream ss(raw);
+    std::string input;
+    while (getline(ss, input, ' ')) {
+        buffer.push_back(input);
+    }
+}
+
+void Application::printError(std::string e) {
+    std::cout << "\033[31m";
+    std::cout << "ERROR: " << e << std::endl;
+    std::cout << "\033[0m";
 }
 
 void Application::printHelper() {
-    std::cout << "Usage:"                               << std::endl;
-    std::cout << "  <command> [options]"                << std::endl;
-    
-    std::cout << "Command:"                             << std::endl;
-    std::cout << "  help        Show this screen"       << std::endl;
-    std::cout << "  exit        Quit the application"   << std::endl;
-    std::cout << "  catalog     Display catalog"        << std::endl;
+std::cout << "Usage:"                                                                                   << std::endl;
+    std::cout << "  <command> [options]"                                                                << std::endl;
+
+    std::cout << "Command:"                                                                             << std::endl;
+    std::cout << "  help                Show this screen"                                               << std::endl;
+    std::cout << "  exit                Quit the application"                                           << std::endl;
+    std::cout << "  clear               Clear the terminal"                                             << std::endl;
+    std::cout << "  catalog <id>        Display catalog or specific identity from the catalog"          << std::endl;
+    std::cout << "  contacts <id>       Display known contacts of a specific registered identity"       << std::endl;
 }
 
 void Application::printCatalog() {
-    std::cout << *catalog << std::endl;
+    if (buffer.size() == 1) {
+        std::cout << *catalog << std::endl;
+        return;
+    }
+
+    int id = stoi(buffer.at(1));
+    
+    if (catalog->count(id) == 0) {
+        printError("unknown id \""+buffer.at(1)+"\""); 
+        return;
+    }
+
+    std::cout << *catalog->at(id) << std::endl;
+}
+
+void Application::printContacts() {
+    if (buffer.size() < 2) {
+        printError("missing parameter");
+        return;
+    }
+
+    int id = stoi(buffer.at(1));
+    
+    if (catalog->count(id) == 0) {
+        printError("unknown id \""+buffer.at(1)+"\""); 
+        return;
+    }
+    
+    catalog->at(id)->printContacts();
 }
 
 void Application::clear() {

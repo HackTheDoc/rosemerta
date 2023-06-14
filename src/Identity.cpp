@@ -15,7 +15,12 @@ Identity::Identity() {
     status = Identity::Status::UNKNOWN;
 }
 
-Identity::~Identity() {}
+Identity::~Identity() {
+    while(!contacts.empty()) {
+        delete contacts.top();
+        contacts.pop();
+    }
+}
 
 void Identity::setID(int id) {
     this->id = id;
@@ -63,6 +68,34 @@ void Identity::setStatus(int s) {
     default:
         status = Identity::Status::UNKNOWN;
         break;
+    }
+}
+
+void Identity::addContact(Contact::Type type, std::string detail) {
+    Contact* c = new Contact(type, detail);
+    contacts.push(c);
+}
+
+void Identity::printContacts() {
+    std::cout << "Contacts of ";
+    if (name != "unknown" && lastname != "unknown")
+        std::cout << name << " " << lastname;
+    else
+        std::cout << username;
+    std::cout << ":" << std::endl;
+
+    std::stack<Contact*> temp;
+    Contact* c;
+    while (!contacts.empty()) {
+        c = contacts.top();
+        contacts.pop();
+        temp.push(c);
+
+        std::cout << "  " << *c << std::endl;
+    }
+    while (!temp.empty()) {
+        contacts.push(temp.top());
+        temp.pop();
     }
 }
 

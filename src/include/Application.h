@@ -2,6 +2,7 @@
 
 #include <sqlite3.h>
 #include <string>
+#include <vector>
 #include <map>
 
 class Catalog;
@@ -13,7 +14,8 @@ public:
         HELP,
         EXIT,
         CLEAR,
-        CATALOG
+        CATALOG,
+        CONTACTS
     };
 
     static sqlite3* database;
@@ -40,8 +42,13 @@ public:
 private:
     static const std::map<std::string, Application::Command> STRING_TO_ORDER;
 
-    void unknownCommandError(std::string c);
+    std::vector<std::string> buffer;
+
+    void parseInput();
+
+    void printError(std::string e);
     void printHelper();
     void printCatalog();
+    void printContacts();
     void clear();
 };

@@ -13,7 +13,8 @@ public:
         INSTAGRAM,
         FACEBOOK,
         TELEGRAM,
-        DISCORD
+        DISCORD,
+        GITHUB
     };
 
     Contact(Contact::Type type = Contact::Type::UNKNOWN, std::string detail = "");

@@ -3,6 +3,12 @@
 #include <sstream>
 #include <vector>
 
+const std::map<Identity::Status, std::string> Identity::STATUS_TO_STRING = {
+    {Identity::Status::UNKNOWN  , "UNKNOWN" },
+    {Identity::Status::ALIVE    , "ALIVE"   },
+    {Identity::Status::DEAD     , "DEAD"    }
+};
+
 Identity::Identity() {
     id = -1;
     username = "unknown";
@@ -116,7 +122,23 @@ std::ostream& operator<<(std::ostream& stream, const Identity& i) {
     stream << "Name     : " << i.name << " " << i.lastname << std::endl;
     stream << "Age      : " << i.age << std::endl;
     stream << "Birthday : " << i.birthday << std::endl;
-    stream << "Status   : " << i.status;
+    stream << "Status   : ";
+    
+    switch (i.status) {
+    case Identity::Status::ALIVE:
+        stream << "\033[32m";
+        break;
+    case Identity::Status::DEAD:
+        stream << "\033[31m";
+        break;
+    case Identity::Status::UNKNOWN:
+    default:
+        stream << "\033[30m";
+        break;
+    }
+
+    stream << i.STATUS_TO_STRING.at(i.status);
+    stream << "\033[0m";
     
     return stream;
 }

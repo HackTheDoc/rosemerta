@@ -35,6 +35,9 @@ std::string Contact::getDetail() {
 }
 
 std::ostream& operator<<(std::ostream& stream, const Contact& c) {
-    stream << c.TYPE_TO_STRING.at(c.type) << ": " << c.detail;
+    stream << c.TYPE_TO_STRING.at(c.type);
+    stream << "\033[33m";
+    stream << ": " << c.detail;
+    stream << "\033[0m";
     return stream;
 }

@@ -53,4 +53,5 @@ private:
     void printContacts();
     void findID();
     void clear();
+    void exit();
 };

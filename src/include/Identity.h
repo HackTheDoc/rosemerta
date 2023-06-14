@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <stack>
+#include <map>
 
 #include "Contact.h"
 #include "Date.h"
@@ -23,7 +24,7 @@ public:
 
     void setUsername(std::string username);
     std::string getUsername();
-    
+
     void setName(std::string name);
     std::string getName();
 
@@ -40,6 +41,8 @@ public:
     friend std::ostream& operator<<(std::ostream& stream, const Identity& i);
 
 private:
+    static const std::map<Identity::Status, std::string> STATUS_TO_STRING;
+
     int id;
     std::string username;
 

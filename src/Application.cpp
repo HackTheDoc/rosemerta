@@ -67,7 +67,7 @@ void Application::eval(std::string input) {
         printHelper();
         break;
     case Application::Command::EXIT:
-        isRunning = false;
+        exit();
         break;
     case Application::Command::CLEAR:
         clear();
@@ -191,4 +191,14 @@ void Application::clear() {
     std::cout << "| |  __/| |___|  _ < ___) | |_| | |\\  |/ ___ \\  |" << std::endl;
     std::cout << "| |_|   |_____|_| \\_\\____/ \\___/|_| \\_/_/   \\_\\ |" << std::endl;
     std::cout << "|_______________________________________________|" << std::endl;
+}
+
+void Application::exit() {
+    #ifdef _WIN32
+        std::system("cls");
+    #else
+        std::system("clear");
+    #endif
+    
+    isRunning = false;
 }

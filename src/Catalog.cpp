@@ -75,6 +75,103 @@ Identity* Catalog::at(const int& id) {
     return nullptr;
 }
 
+std::set<int> Catalog::findID(std::string name) {
+    std::set<int> buffer = findByName(name);
+
+    std::set<int> temp = findByUsername(name);
+    for (int e : temp) {
+        buffer.insert(e);
+    }
+
+    temp = findByFirstname(name);
+    for (int e : temp) {
+        buffer.insert(e);
+    }
+
+    temp = findByLastname(name);
+    for (int e : temp) {
+        buffer.insert(e);
+    }
+    
+    return buffer;
+}
+
+std::set<int> Catalog::findByUsername(std::string username) {
+    std::set<int> buffer;
+
+    std::string sql = "SELECT * FROM identity WHERE username = ?;";
+    sqlite3_stmt* stmt;
+
+    sqlite3_prepare_v2(Application::database, sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        buffer.insert(id);
+    }
+
+    sqlite3_finalize(stmt);
+
+    return buffer;
+}
+
+std::set<int> Catalog::findByName(std::string name) {
+    std::set<int> buffer;
+
+    std::string sql = "SELECT * FROM identity WHERE name = ?;";
+    sqlite3_stmt* stmt;
+
+    sqlite3_prepare_v2(Application::database, sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        buffer.insert(id);
+    }
+
+    sqlite3_finalize(stmt);
+
+    return buffer;
+}
+
+std::set<int> Catalog::findByLastname(std::string lastname) {
+    std::set<int> buffer;
+
+    std::string sql = "SELECT * FROM identity WHERE name = ?;";
+    sqlite3_stmt* stmt;
+
+    sqlite3_prepare_v2(Application::database, sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, ("% "+lastname).c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        buffer.insert(id);
+    }
+
+    sqlite3_finalize(stmt);
+
+    return buffer;
+}
+
+std::set<int> Catalog::findByFirstname(std::string firstname) {
+    std::set<int> buffer;
+
+    std::string sql = "SELECT * FROM identity WHERE name = ?;";
+    sqlite3_stmt* stmt;
+
+    sqlite3_prepare_v2(Application::database, sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, (firstname+"%").c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        int id = sqlite3_column_int(stmt, 0);
+        buffer.insert(id);
+    }
+
+    sqlite3_finalize(stmt);
+
+    return buffer;
+}
+
 int Catalog::count(const int& id) {
     return items.count(id);
 }

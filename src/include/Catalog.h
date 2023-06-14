@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <string>
+#include <set>
 #include <unordered_map>
 
 class Identity;
@@ -15,6 +16,11 @@ private:
     void loadContacts();
     void loadLocations();
 
+    std::set<int> findByUsername(std::string username);
+    std::set<int> findByName(std::string name);
+    std::set<int> findByLastname(std::string lastname);
+    std::set<int> findByFirstname(std::string firstname);
+
 public:
     Catalog();
     ~Catalog();
@@ -22,6 +28,8 @@ public:
     void load();
 
     Identity* at(const int& id);
+
+    std::set<int> findID(std::string name);
 
     int count(const int& id);
 

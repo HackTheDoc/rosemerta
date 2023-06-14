@@ -15,7 +15,8 @@ public:
         EXIT,
         CLEAR,
         CATALOG,
-        CONTACTS
+        CONTACTS,
+        ID
     };
 
     static sqlite3* database;
@@ -50,5 +51,6 @@ private:
     void printHelper();
     void printCatalog();
     void printContacts();
+    void findID();
     void clear();
 };

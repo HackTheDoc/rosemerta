@@ -22,8 +22,14 @@ public:
     int getID();
 
     void setUsername(std::string username);
+    std::string getUsername();
+    
     void setName(std::string name);
+    std::string getName();
+
     void setLastname(std::string lastname);
+    std::string getLastname();
+
     void setAge(int age);
     void setBirthday(std::string birthday);
     void setStatus(int s);

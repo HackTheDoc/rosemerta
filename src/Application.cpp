@@ -16,7 +16,8 @@ const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
     {"exit"     , Application::Command::EXIT        },
     {"clear"    , Application::Command::CLEAR       },
     {"catalog"  , Application::Command::CATALOG     },
-    {"contacts" , Application::Command::CONTACTS    }
+    {"contacts" , Application::Command::CONTACTS    },
+    {"id"       , Application::Command::ID          }
 };
 
 Application::Application() {}
@@ -77,6 +78,9 @@ void Application::eval(std::string input) {
     case Application::Command::CONTACTS:
         printContacts();
         break;
+    case Application::Command::ID:
+        findID();
+        break;
     case Application::Command::UNKNOWN:
     default:
         printError("command \""+buffer.at(0)+"\" is unkown");
@@ -113,10 +117,18 @@ std::cout << "Usage:"                                                           
 
     std::cout << "Command:"                                                                             << std::endl;
     std::cout << "  help                Show this screen"                                               << std::endl;
+    
     std::cout << "  exit                Quit the application"                                           << std::endl;
+    
     std::cout << "  clear               Clear the terminal"                                             << std::endl;
-    std::cout << "  catalog <id>        Display catalog or specific identity from the catalog"          << std::endl;
+    
+    std::cout << "  catalog <  >        Display the entire catalog"                                     << std::endl;
+    std::cout << "          <id>        Display a specific identity from the catalog"                   << std::endl;
+    
     std::cout << "  contacts <id>       Display known contacts of a specific registered identity"       << std::endl;
+
+    std::cout << "  id <username>       Find the id of a referenced username"                           << std::endl;
+    std::cout << "     <name>           Find the id of a referenced name"                               << std::endl;
 }
 
 void Application::printCatalog() {
@@ -149,6 +161,20 @@ void Application::printContacts() {
     }
     
     catalog->at(id)->printContacts();
+}
+
+void Application::findID() {
+    if (buffer.size() < 2) {
+        printError("missing parameter");
+        return;
+    }
+
+    std::set<int> ids = catalog->findID(buffer.at(1));
+
+    std::cout << "IDs associate with name " << buffer.at(1) << ":" << std::endl;
+    for (const int& id : ids) {
+        std::cout << "  " << id << std::endl;
+    }
 }
 
 void Application::clear() {

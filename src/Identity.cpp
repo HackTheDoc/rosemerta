@@ -34,12 +34,24 @@ void Identity::setUsername(std::string username) {
     this->username = username;
 }
 
+std::string Identity::getUsername() {
+    return username;
+}
+
 void Identity::setName(std::string name) {
     this->name = name;
 }
 
+std::string Identity::getName() {
+    return name;
+}
+
 void Identity::setLastname(std::string lastname) {
     this->lastname = lastname;
+}
+
+std::string Identity::getLastname() {
+    return lastname;
 }
 
 void Identity::setAge(int age) {

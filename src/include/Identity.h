@@ -32,11 +32,17 @@ public:
     std::string getLastname();
 
     void setAge(int age);
+    int getAge();
+
     void setBirthday(std::string birthday);
+    std::string getBirthday();
+
     void setStatus(int s);
     void setStatus(std::string s);
+    Identity::Status getStatus();
 
     void addContact(Contact::Type type, std::string detail);
+    std::stack<Contact*>* getContacts();
     void printContacts();
 
     friend std::ostream& operator<<(std::ostream& stream, const Identity& i);

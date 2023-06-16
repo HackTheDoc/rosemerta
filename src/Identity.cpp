@@ -64,11 +64,19 @@ void Identity::setAge(int age) {
     this->age = age;
 }
 
+int Identity::getAge() {
+    return age;
+}
+
 void Identity::setBirthday(std::string birthday) {
     int d,m,y;
     d = m = y = -1;
     sscanf(birthday.c_str(), "%d-%d-%d", &d,&m,&y);
     this->birthday.setDate(d, m, y);
+}
+
+std::string Identity::getBirthday() {
+    return birthday.get();
 }
 
 void Identity::setStatus(int s) {
@@ -91,9 +99,17 @@ void Identity::setStatus(std::string s) {
     else if (s == "unknown") status = Identity::Status::UNKNOWN;
 }
 
+Identity::Status Identity::getStatus() {
+    return status;
+}
+
 void Identity::addContact(Contact::Type type, std::string detail) {
     Contact* c = new Contact(type, detail);
     contacts.push(c);
+}
+
+std::stack<Contact*>* Identity::getContacts() {
+    return &contacts;
 }
 
 void Identity::printContacts() {

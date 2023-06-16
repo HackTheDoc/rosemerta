@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cstdlib>
 
-sqlite3* Application::database = nullptr;
+std::string Application::database = "./database.db";
 Catalog* Application::catalog = nullptr;
 bool Application::isRunning = false;
 
@@ -15,6 +15,7 @@ const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
     {"help"     , Application::Command::HELP        },
     {"exit"     , Application::Command::EXIT        },
     {"clear"    , Application::Command::CLEAR       },
+    {"save"     , Application::Command::SAVE        },
     {"catalog"  , Application::Command::CATALOG     },
     {"contacts" , Application::Command::CONTACTS    },
     {"id"       , Application::Command::ID          },
@@ -25,9 +26,7 @@ Application::Application() {}
 
 Application::~Application() {}
 
-void Application::init() {
-    sqlite3_open("./database.db", &database);
-    
+void Application::init() {    
     catalog = new Catalog();
     catalog->load();
 }
@@ -47,9 +46,7 @@ void Application::run() {
 }
 
 void Application::kill() {
-    sqlite3_close(database);
-    database = nullptr;
-
+    catalog->save();
     catalog->clear();
     delete catalog;
     catalog = nullptr;
@@ -72,6 +69,9 @@ void Application::eval(std::string input) {
         break;
     case Application::Command::CLEAR:
         commandClear();
+        break;
+    case Application::Command::SAVE:
+        commandSave();
         break;
     case Application::Command::CATALOG:
         commandCatalog();
@@ -156,6 +156,14 @@ void Application::commandClear() {
     std::cout << "|_______________________________________________|" << std::endl;
 }
 
+void Application::commandSave() {
+    if (Catalog::changelog.empty()) {
+        std::cout << "nothing to save" << std::endl;
+    } else {
+        catalog->save();
+    }
+}
+
 void Application::commandCatalog() {
     if (buffer.size() == 1) {
         std::cout << *catalog << std::endl;
@@ -219,11 +227,29 @@ void Application::commandSet() {
     std::string param = buffer.at(2);
     std::string value = buffer.at(3);
 
-    if (param == "username") catalog->at(id)->setUsername(value);
-    else if (param == "name") catalog->at(id)->setName(value);
-    else if (param == "lastname") catalog->at(id)->setLastname(value);
-    else if (param == "age") catalog->at(id)->setAge(stoi(value));
-    else if (param == "birthday") catalog->at(id)->setBirthday(value);
-    else if (param == "status") catalog->at(id)->setStatus(value);
+    if (param == "username") {
+        catalog->at(id)->setUsername(value);
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::USERNAME));
+    }
+    else if (param == "name") {
+        catalog->at(id)->setName(value);
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::NAME));
+    }
+    else if (param == "lastname") {
+        catalog->at(id)->setLastname(value);
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::LASTNAME));
+    }
+    else if (param == "age") {
+        catalog->at(id)->setAge(stoi(value));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::AGE));
+    }
+    else if (param == "birthday") {
+        catalog->at(id)->setBirthday(value);
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::BIRTHDAY));
+    }
+    else if (param == "status") {
+        catalog->at(id)->setStatus(value);
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::STATUS));
+    }
     else Error("unknown parameter \""+param+"\"");
 }

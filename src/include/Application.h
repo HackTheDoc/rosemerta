@@ -14,13 +14,14 @@ public:
         HELP,
         EXIT,
         CLEAR,
+        SAVE,
         CATALOG,
         CONTACTS,
         ID,
         SET
     };
 
-    static sqlite3* database;
+    static std::string database;
     static Catalog* catalog;
     static bool isRunning;
 
@@ -52,6 +53,7 @@ private:
     void commandHelp();
     void commandExit();
     void commandClear();
+    void commandSave();
     void commandCatalog();
     void commandContacts();
     void commandID();

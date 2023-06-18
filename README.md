@@ -18,15 +18,16 @@ It alows you to store general information about an entity and and analize them.
 ## Technologies
 
 Project is created with:
+
 - CPP
 - SQLITE 3
 
 ## Setup
 
-To run this project, install locally the `exec` folder and run it in your terminal using:
+To run this project, install locally the `app` folder and run it in your terminal using:
 
-```
-$ cd ../exec
+```bash
+$ cd ../app
 $ ./persona
 ```
 

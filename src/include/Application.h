@@ -19,7 +19,10 @@ public:
         CONTACTS,
         ID,
         SET,
-        DELETE
+        DELETE,
+        CREATE,
+        ADD,
+        ADD_CONTACT
     };
 
     static std::string database;
@@ -44,6 +47,7 @@ public:
     void eval(std::string input);
     
     static void Error(std::string e);
+    static void Warning(std::string w);
 
 private:
     static const std::map<std::string, Application::Command> STRING_TO_ORDER;
@@ -61,4 +65,7 @@ private:
     void commandID();
     void commandSet();
     void commandDelete();
+    void commandCreate();
+    void commandAdd();
+    void commandAddContact();
 };

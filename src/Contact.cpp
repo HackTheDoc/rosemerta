@@ -36,7 +36,7 @@ void Contact::setType(Contact::Type type) {
 void Contact::addDetails(std::string details) {
     std::stringstream ss(details);
     std::string s;
-    while (getline(ss, s, '|')) {
+    while (getline(ss, s, '-')) {
         addDetail(s);
     }
 }
@@ -60,7 +60,7 @@ Contact::Type Contact::getType() {
 std::string Contact::getDetails() {
     std::string s = details.at(0);
     for (int i = 1; i < (int)details.size(); i++)
-        s += " - " + details.at(i);
+        s += "-" + details.at(i);
     return s;
 }
 
@@ -68,8 +68,13 @@ std::ostream& operator<<(std::ostream& stream, const Contact& c) {
     stream << c.TYPE_TO_STRING.at(c.type);
     stream << "\033[33m";
     stream << ": " << c.details.at(0);
-    for (int i = 1; i < (int)c.details.size(); i++)
-        stream << "  " << c.details.at(i);
+    for (int i = 1; i < (int)c.details.size(); i++) {
+        stream << std::endl; 
+        std::string span = "    ";
+        for (int n = 0; n < (int)c.TYPE_TO_STRING.at(c.type).size(); n++)
+            span += " ";
+        stream << span << c.details.at(i);
+    }
     stream << "\033[0m";
     return stream;
 }

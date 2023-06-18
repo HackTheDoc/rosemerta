@@ -109,9 +109,34 @@ Identity::Status Identity::getStatus() {
     return status;
 }
 
-void Identity::addContact(Contact::Type type, std::string detail) {
-    Contact* c = new Contact(type, detail);
-    contacts.push(c);
+void Identity::addContact(Contact::Type t, std::string detail) {
+    std::stack<Contact*> temp;
+    Contact* c = nullptr;
+    while (c == nullptr && !contacts.empty()) {
+        if (contacts.top()->getType() == t) c = contacts.top();
+        temp.push(contacts.top());
+        contacts.pop();
+    }
+    while(!temp.empty()) {
+        contacts.push(temp.top());
+        temp.pop();
+    }
+
+    if (c == nullptr) {
+        c = new Contact(t, detail);
+        contacts.push(c);
+        return;
+    }
+
+    c->addDetails(detail);
+}
+
+void Identity::addContact(std::string t, std::string detail) {
+    Contact::Type type;
+    if (Contact::STRING_TO_TYPE.count(t) == 0) type = Contact::Type::UNKNOWN;
+    else type = Contact::STRING_TO_TYPE.at(t);
+
+    addContact(type, detail);
 }
 
 std::stack<Contact*>* Identity::getContacts() {

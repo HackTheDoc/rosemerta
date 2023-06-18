@@ -44,6 +44,7 @@ public:
     Identity::Status getStatus();
 
     void addContact(Contact::Type t, std::string detail);
+    void addContact(std::string t, std::string detail);
     std::stack<Contact*>* getContacts();
     void removeContact(std::string contact, int index);
     void printContacts();

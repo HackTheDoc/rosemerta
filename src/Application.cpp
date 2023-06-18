@@ -11,16 +11,19 @@ Catalog* Application::catalog = nullptr;
 bool Application::isRunning = false;
 
 const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
-    {"unknown"  , Application::Command::UNKNOWN     },
-    {"help"     , Application::Command::HELP        },
-    {"exit"     , Application::Command::EXIT        },
-    {"clear"    , Application::Command::CLEAR       },
-    {"save"     , Application::Command::SAVE        },
-    {"catalog"  , Application::Command::CATALOG     },
-    {"contacts" , Application::Command::CONTACTS    },
-    {"id"       , Application::Command::ID          },
-    {"set"      , Application::Command::SET         },
-    {"delete"   , Application::Command::DELETE      }
+    {"unknown"          , Application::Command::UNKNOWN         },
+    {"help"             , Application::Command::HELP            },
+    {"exit"             , Application::Command::EXIT            },
+    {"clear"            , Application::Command::CLEAR           },
+    {"save"             , Application::Command::SAVE            },
+    {"catalog"          , Application::Command::CATALOG         },
+    {"contacts"         , Application::Command::CONTACTS        },
+    {"id"               , Application::Command::ID              },
+    {"set"              , Application::Command::SET             },
+    {"delete"           , Application::Command::DELETE          },
+    {"create"           , Application::Command::CREATE          },
+    {"add"              , Application::Command::ADD             },
+    {"add-contact"      , Application::Command::ADD_CONTACT     },
 };
 
 Application::Application() {}
@@ -42,8 +45,8 @@ void Application::start() {
 
 void Application::run() {
     parseInput();
-
-    eval(buffer.at(0));
+ 
+    if (buffer.size() > 0) eval(buffer.at(0));
 }
 
 void Application::kill() {
@@ -89,6 +92,15 @@ void Application::eval(std::string input) {
     case Application::Command::DELETE:
         commandDelete();
         break;
+    case Application::Command::CREATE:
+        commandCreate();
+        break;
+    case Application::Command::ADD:
+        commandAdd();
+        break;
+    case Application::Command::ADD_CONTACT:
+        commandAddContact();
+        break;
     case Application::Command::UNKNOWN:
     default:
         Error("command \""+buffer.at(0)+"\" is unkown");
@@ -119,6 +131,13 @@ void Application::Error(std::string e) {
     std::cout << "\033[0m";
 }
 
+void Application::Warning(std::string w) {
+    std::cout << "\033[33m";
+    std::cout << "WARNING: ";
+    std::cout << "\033[0m";
+    std::cout << w << std::endl;
+}
+
 void Application::commandHelp() {
     std::cout << "Usage:"                                                                                   << std::endl;
     std::cout << "  <command> [options]"                                                                    << std::endl;
@@ -127,13 +146,14 @@ void Application::commandHelp() {
     std::cout << "  help                        Show this screen"                                               << std::endl;
     std::cout << "  exit                        Quit the application"                                           << std::endl;
     std::cout << "  clear                       Clear the terminal"                                             << std::endl;
-    std::cout << "  catalog <  >                Display the entire catalog"                                     << std::endl;
-    std::cout << "          <id>                Display a specific identity from the catalog"                   << std::endl;
-    std::cout << "  contacts <id>               Display known contacts of a specific registered identity"       << std::endl;
-    std::cout << "  id <name>                   Find the id of a registered identity"                           << std::endl;
-    std::cout << "  set <id> <param> <value>    Set a new value for a specific param of a specific identity"    << std::endl;
-    std::cout << "  delete id <id>              Delete one's identity"                                          << std::endl;
-    std::cout << "  delete contact <id> <type>  Delete one's specific contact"                                  << std::endl;
+    std::cout << "  catalog [id]                Display the catalog or a specific item"                         << std::endl;
+    std::cout << "  contacts [id]               Display known contacts of a specific registered identity"       << std::endl;
+    std::cout << "  id [name]                   Find the id of a registered identity"                           << std::endl;
+    std::cout << "  set [id] [param] [value]    Set a new value for a specific param of a specific identity"    << std::endl;
+    std::cout << "  delete id [id]              Delete one's identity"                                          << std::endl;
+    std::cout << "         contact [id] [type]  Delete one's specific contact"                                  << std::endl;
+    std::cout << "  add                         Add a data about specific identity"                             << std::endl;
+    std::cout << "      contact"                                                                                << std::endl;
 }
 
 void Application::commandExit() {
@@ -293,3 +313,78 @@ void Application::commandDelete() {
     }
 }
 
+void Application::commandCreate() {
+    Warning("not implemented yet");
+}
+
+void Application::commandAdd() {
+    std::string redirect;
+    if (buffer.size() < 2) {
+        std::cout << "  type of information (ex:contact): ";
+        std::cin >> redirect;
+    } else {
+        redirect = buffer.at(1);
+    }
+    
+    if (redirect == "contact") commandAddContact();
+    else Warning("aborted");
+}
+
+void Application::commandAddContact() {
+    // with full args
+    if (buffer.size() >= 5) {
+        std::string details = buffer.at(4);
+        for (int i = 5; i < (int)buffer.size(); i++)
+            details += "|" + buffer.at(i);
+
+        Identity* id = catalog->at(stoi(buffer.at(2)));
+        if (id == nullptr) return;
+
+        id->addContact(buffer.at(3), details);
+
+        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::UPDATE_CONTACT));
+
+        return;
+    }
+
+    // manual creation
+    std::cout << "  owner id: ";
+    std::string r_owner;
+    std::cin >> r_owner;
+
+    std::cout << "  type: ";
+    std::string type;
+    std::cin >> type;
+
+    std::cout << "  detail: ";
+    std::string detail;
+    std::cin >> detail;
+
+    if (r_owner == "" || type == "" || detail == "") {
+        Error("incorrect(s) input(s)");
+        return;
+    }
+
+    std::cout << "  valid? (y/n) ";
+    std::string validation;
+    std::cin >> validation;
+
+    if (validation != "" &&
+        validation != "y"   &&
+        validation != "Y"   &&
+        validation != "yes" &&
+        validation != "YES" &&
+        validation != "Yes"
+        ) {
+            Warning("aborted");
+            return;
+        }
+
+    
+    Identity* id = catalog->at(stoi(r_owner));
+    if (id == nullptr) return;
+
+    id->addContact(type, detail);
+
+    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::UPDATE_CONTACT));
+}

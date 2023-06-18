@@ -18,7 +18,8 @@ public:
         CATALOG,
         CONTACTS,
         ID,
-        SET
+        SET,
+        DELETE
     };
 
     static std::string database;
@@ -41,6 +42,8 @@ public:
     /// @brief Evaluate the given input
     /// @param input command to evaluate
     void eval(std::string input);
+    
+    static void Error(std::string e);
 
 private:
     static const std::map<std::string, Application::Command> STRING_TO_ORDER;
@@ -49,7 +52,6 @@ private:
 
     void parseInput();
 
-    void Error(std::string e);
     void commandHelp();
     void commandExit();
     void commandClear();
@@ -58,4 +60,5 @@ private:
     void commandContacts();
     void commandID();
     void commandSet();
+    void commandDelete();
 };

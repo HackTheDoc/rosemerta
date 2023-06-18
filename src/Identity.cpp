@@ -1,7 +1,9 @@
 #include "include/Identity.h"
+#include "include/Application.h"
 
 #include <sstream>
 #include <vector>
+#include <algorithm>
 
 const std::map<Identity::Status, std::string> Identity::STATUS_TO_STRING = {
     {Identity::Status::UNKNOWN  , "UNKNOWN" },
@@ -22,6 +24,10 @@ Identity::Identity() {
 }
 
 Identity::~Identity() {
+    clear();
+}
+
+void Identity::clear()  {
     while(!contacts.empty()) {
         delete contacts.top();
         contacts.pop();
@@ -110,6 +116,37 @@ void Identity::addContact(Contact::Type type, std::string detail) {
 
 std::stack<Contact*>* Identity::getContacts() {
     return &contacts;
+}
+
+void Identity::removeContact(std::string t, int index) {
+    try {
+        std::stack<Contact*> buffer;
+        Contact* c = contacts.top();
+        for (int i = 0; i < (int)t.size(); i++) {
+            if (t[i] == ' ') t[i] = '-';
+            else t[i] = tolower(t[i]);
+        }
+        Contact::Type type = Contact::STRING_TO_TYPE.at(t);
+        while (!contacts.empty() && c->getType() != type) {
+            buffer.push(c);
+            contacts.pop();
+            if (!contacts.empty()) contacts.top();
+        }
+
+        if (!contacts.empty() && c->removeDetail(index)) {
+            contacts.pop();
+            delete c;
+        }
+
+        while (!buffer.empty()) {
+            contacts.push(buffer.top());
+            buffer.pop();
+        }
+    }
+    catch(const std::exception& e) {
+        Application::Error("unknown or unexistant contact");
+    }
+    
 }
 
 void Identity::printContacts() {

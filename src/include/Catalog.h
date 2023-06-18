@@ -17,7 +17,9 @@ public:
         LASTNAME,
         AGE,
         BIRTHDAY,
-        STATUS
+        STATUS,
+        ERASE,
+        UPDATE_CONTACT
     };
 
     static std::set<std::pair<int, ChangingType>> changelog;
@@ -35,6 +37,9 @@ public:
 
     int count(const int& id);
 
+    void erase(const int& id);
+    void eraseContact(const int& id, std::string type, int index = 1);
+
     void clear();
 
     std::unordered_map<int, Identity*>::iterator begin() noexcept;
@@ -47,6 +52,7 @@ public:
 private:
     // items stored by id
     std::unordered_map<int, Identity*> items;
+    std::unordered_map<int, Identity*> deletedItems;
     int loadedCapacity;
 
     void loadIdentities();
@@ -59,6 +65,8 @@ private:
     void updateAge(int id);
     void updateBirthday(int id);
     void updateStatus(int id);
+    void eraseID(int id);
+    void updateContacts(int id);
 
     std::set<int> findByUsername(std::string username);
     std::set<int> findByName(std::string name);

@@ -98,6 +98,12 @@ void Catalog::save() {
         case ChangingType::STATUS:
             updateStatus(change.first);
             break;
+        case ChangingType::ERASE:
+            eraseID(change.first);
+            break;
+        case ChangingType::UPDATE_CONTACT:
+            updateContacts(change.first);
+            break;
         default:
             break;
         }
@@ -220,14 +226,77 @@ void Catalog::updateStatus(int id) {
     sqlite3_close(db);
 }
 
+void Catalog::eraseID(int id) {
+    Identity* i = deletedItems.at(id);
+    i->clear();
+
+    sqlite3* db;
+    sqlite3_open(Application::database.c_str(), &db);
+
+    std::string deleteContactsQuery = "DELETE FROM contact WHERE owner = ?;";
+    sqlite3_stmt* deleteContactsStatement;
+    sqlite3_prepare_v2(db, deleteContactsQuery.c_str(), -1, &deleteContactsStatement, nullptr);
+    sqlite3_bind_int(deleteContactsStatement, 1, id);
+    if (sqlite3_step(deleteContactsStatement) != SQLITE_DONE)
+        Application::Error("unable to clear identity "+std::to_string(id));
+    sqlite3_finalize(deleteContactsStatement);
+
+    std::string deleteIdQuery = "DELETE FROM identity WHERE id = ?;";
+    sqlite3_stmt* deleteIdStatement;
+    sqlite3_prepare_v2(db, deleteIdQuery.c_str(), -1, &deleteIdStatement, nullptr);
+    sqlite3_bind_int(deleteIdStatement, 1, id);
+    if (sqlite3_step(deleteIdStatement) != SQLITE_DONE)
+        Application::Error("unable to clear identity "+std::to_string(id));
+    sqlite3_finalize(deleteIdStatement);
+
+    sqlite3_close(db);
+}
+
+void Catalog::updateContacts(int id) {
+    Identity* i = at(id);
+    if (i == nullptr) return;
+    std::stack<Contact*>* contacts = i->getContacts();
+    Contact* c;
+
+    sqlite3* db;
+    sqlite3_open(Application::database.c_str(), &db);
+
+    std::string deleteQuery = "DELETE FROM contact WHERE owner = ?;";
+    sqlite3_stmt* deleteStatement;
+    sqlite3_prepare_v2(db, deleteQuery.c_str(), -1, &deleteStatement, nullptr);
+    sqlite3_bind_int(deleteStatement, 1, id);
+    if (sqlite3_step(deleteStatement) != SQLITE_DONE)
+        Application::Error("unable to clear old contacts");
+    sqlite3_finalize(deleteStatement);
+
+    while(!contacts->empty()) {
+        c = contacts->top();
+        contacts->pop();
+
+        std::string insertQuery = "INSERT INTO contact (owner, type, detail) VALUES (?,?,?);";
+        sqlite3_stmt* insertStatement;
+        sqlite3_prepare_v2(db, insertQuery.c_str(), -1, &insertStatement, nullptr);
+
+        sqlite3_bind_int(insertStatement, 1, id);
+        sqlite3_bind_int(insertStatement, 2, c->getType());
+        sqlite3_bind_text(insertStatement, 3, c->getDetails().c_str(), -1, SQLITE_STATIC);
+
+        if (sqlite3_step(insertStatement) != SQLITE_DONE) {
+            Application::Error(sqlite3_errmsg(db));
+        }
+
+        sqlite3_finalize(insertStatement);
+    }
+    sqlite3_close(db);
+}
+
 Identity* Catalog::at(const int& id) {
     try {
         return items.at(id);
     }
     catch(const std::exception& e)
     {
-        std::cerr << "ERROR: impossible to find card with id \"" << id << "\"" << std::endl;
-        throw(e);
+        Application::Error("unknown id "+std::to_string(id));
     }
     
     return nullptr;
@@ -354,6 +423,22 @@ int Catalog::count(const int& id) {
     return items.count(id);
 }
 
+void Catalog::erase(const int& id) {
+    Identity* i = at(id);
+    if (i == nullptr) return;
+
+    items.erase(id);
+    deletedItems.insert(std::make_pair(id, i));
+    changelog.insert(std::make_pair(id, ERASE));
+}
+
+void Catalog::eraseContact(const int& id, std::string type, int index) {
+    Identity* i = this->at(id);
+    if (i == nullptr) return;
+    i->removeContact(type, index);
+    changelog.insert(std::make_pair(id, UPDATE_CONTACT));
+}
+
 void Catalog::clear() {
     for (auto i : items) {
         delete i.second;
@@ -384,7 +469,7 @@ std::ostream& operator<<(std::ostream& stream, const Catalog& c) {
         stream << std::endl;
         stream << *i.second << std::endl;
     }
-    if (c.loadedCapacity == 0) stream << std::endl;
+    if (c.items.size() == 0) stream << std::endl;
     stream << " -----------------------------";
 
     return stream;

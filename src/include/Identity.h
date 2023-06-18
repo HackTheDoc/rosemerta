@@ -19,6 +19,8 @@ public:
     Identity();
     ~Identity();
 
+    void clear();
+
     void setID(int id);
     int getID();
 
@@ -41,8 +43,9 @@ public:
     void setStatus(std::string s);
     Identity::Status getStatus();
 
-    void addContact(Contact::Type type, std::string detail);
+    void addContact(Contact::Type t, std::string detail);
     std::stack<Contact*>* getContacts();
+    void removeContact(std::string contact, int index);
     void printContacts();
 
     friend std::ostream& operator<<(std::ostream& stream, const Identity& i);

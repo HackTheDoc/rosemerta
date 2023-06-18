@@ -31,6 +31,8 @@ public:
 
     void save();
 
+    void insert(Identity* i);
+
     Identity* at(const int& id);
 
     std::set<int> findID(std::string name);
@@ -55,6 +57,8 @@ private:
     std::unordered_map<int, Identity*> deletedItems;
     int loadedCapacity;
 
+    int nextFreeID();
+
     void loadIdentities();
     void loadContacts();
     void loadLocations();
@@ -67,6 +71,7 @@ private:
     void updateStatus(int id);
     void eraseID(int id);
     void updateContacts(int id);
+    void saveIdentity(int id);
 
     std::set<int> findByUsername(std::string username);
     std::set<int> findByName(std::string name);

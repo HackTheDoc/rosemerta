@@ -3,13 +3,13 @@
 #include <sstream>
 
 const std::map<Contact::Type, std::string> Contact::TYPE_TO_STRING = {
-    {Contact::Type::UNKNOWN,       "Unknown"       },
-    {Contact::Type::PHONE_NUMBER,  "Phone Number"  },
-    {Contact::Type::TWITTER,       "Twitter"       },
-    {Contact::Type::INSTAGRAM,     "Instagram"     },
-    {Contact::Type::FACEBOOK,      "Facebook"      },
-    {Contact::Type::TELEGRAM,      "Telegram"      },
-    {Contact::Type::DISCORD,       "Discord"       }
+    {Contact::Type::UNKNOWN,       "Unknown     "},
+    {Contact::Type::PHONE_NUMBER,  "Phone Number"},
+    {Contact::Type::TWITTER,       "Twitter     "},
+    {Contact::Type::INSTAGRAM,     "Instagram   "},
+    {Contact::Type::FACEBOOK,      "Facebook    "},
+    {Contact::Type::TELEGRAM,      "Telegram    "},
+    {Contact::Type::DISCORD,       "Discord     "}
 };
 
 const std::map<std::string, Contact::Type> Contact::STRING_TO_TYPE = {
@@ -65,9 +65,9 @@ std::string Contact::getDetails() {
 }
 
 std::ostream& operator<<(std::ostream& stream, const Contact& c) {
-    stream << c.TYPE_TO_STRING.at(c.type);
+    stream << c.TYPE_TO_STRING.at(c.type) << ": ";
     stream << "\033[33m";
-    stream << ": " << c.details.at(0);
+    stream << c.details.at(0);
     for (int i = 1; i < (int)c.details.size(); i++) {
         stream << std::endl; 
         std::string span = "    ";

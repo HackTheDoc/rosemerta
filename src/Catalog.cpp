@@ -104,6 +104,9 @@ void Catalog::save() {
         case ChangingType::UPDATE_CONTACT:
             updateContacts(change.first);
             break;
+        case ChangingType::NEW_IDENTITY:
+            saveIdentity(change.first);
+            break;
         default:
             break;
         }
@@ -290,6 +293,39 @@ void Catalog::updateContacts(int id) {
     sqlite3_close(db);
 }
 
+void Catalog::saveIdentity(int id) {
+    Identity* i = at(id);
+    if (i == nullptr) return;
+
+    sqlite3* db;
+    sqlite3_open(Application::database.c_str(), &db);
+
+    std::string insertQuery = "INSERT INTO identity (id, username, name, lastname, age, birthday, status) VALUES (?,?,?,?,?,?,?);";
+    sqlite3_stmt* insertStatement;
+    sqlite3_prepare_v2(db, insertQuery.c_str(), -1, &insertStatement, nullptr);
+
+    sqlite3_bind_int(insertStatement , 1, id);
+    sqlite3_bind_text(insertStatement, 2, i->getUsername().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(insertStatement, 3, i->getName().c_str()    , -1, SQLITE_STATIC);
+    sqlite3_bind_text(insertStatement, 4, i->getLastname().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(insertStatement , 5, i->getAge());
+    sqlite3_bind_text(insertStatement, 6, i->getBirthday().c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(insertStatement , 7, i->getStatus());
+
+    if (sqlite3_step(insertStatement) != SQLITE_DONE) {
+        Application::Error(sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(insertStatement);
+    sqlite3_close(db);
+}
+
+void Catalog::insert(Identity* i) {
+    int id = nextFreeID();
+    i->setID(id);
+    items[id] = i;
+}
+
 Identity* Catalog::at(const int& id) {
     try {
         return items.at(id);
@@ -303,9 +339,9 @@ Identity* Catalog::at(const int& id) {
 }
 
 std::set<int> Catalog::findID(std::string name) {
-    std::set<int> buffer = findByName(name);
+    std::set<int> buffer = findByUsername(name);
 
-    std::set<int> temp = findByUsername(name);
+    std::set<int> temp = findByName(name);
     for (int e : temp) {
         buffer.insert(e);
     }
@@ -381,7 +417,7 @@ std::set<int> Catalog::findByLastname(std::string lastname) {
     sqlite3_stmt* stmt;
 
     sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
-    sqlite3_bind_text(stmt, 1, ("% "+lastname).c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, (lastname).c_str(), -1, SQLITE_STATIC);
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
@@ -460,6 +496,12 @@ std::unordered_map<int, Identity*>::const_iterator Catalog::begin() const noexce
 
 std::unordered_map<int, Identity*>::const_iterator Catalog::end() const noexcept {
     return items.cend();
+}
+
+int Catalog::nextFreeID() {
+    int id = 1;
+    while (id <= (int)items.size() && items[id]->getID()) id++;
+    return id;
 }
 
 std::ostream& operator<<(std::ostream& stream, const Catalog& c) {

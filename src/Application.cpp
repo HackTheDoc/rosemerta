@@ -127,8 +127,9 @@ void Application::parseInput() {
 
 void Application::Error(std::string e) {
     std::cout << "\033[31m";
-    std::cout << "ERROR: " << e << std::endl;
+    std::cout << "ERROR: ";
     std::cout << "\033[0m";
+    std::cout << e << std::endl;
 }
 
 void Application::Warning(std::string w) {
@@ -152,6 +153,7 @@ void Application::commandHelp() {
     std::cout << "  set [id] [param] [value]    Set a new value for a specific param of a specific identity"    << std::endl;
     std::cout << "  delete id [id]              Delete one's identity"                                          << std::endl;
     std::cout << "         contact [id] [type]  Delete one's specific contact"                                  << std::endl;
+    std::cout << "  create                      Create a new identity"                                          << std::endl;
     std::cout << "  add                         Add a data about specific identity"                             << std::endl;
     std::cout << "      contact"                                                                                << std::endl;
 }
@@ -314,7 +316,80 @@ void Application::commandDelete() {
 }
 
 void Application::commandCreate() {
-    Warning("not implemented yet");
+    // with full args
+    /*if (buffer.size() >= 5) {
+        std::string details = buffer.at(4);
+        for (int i = 5; i < (int)buffer.size(); i++)
+            details += "|" + buffer.at(i);
+
+        Identity* id = catalog->at(stoi(buffer.at(2)));
+        if (id == nullptr) return;
+
+        id->addContact(buffer.at(3), details);
+
+        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NEW_IDENTITY));
+
+        return;
+    }*/
+
+    // manual creation
+    Warning("use '-1' value to set to unknown");
+    std::cout << "  username: ";
+    std::string username;
+    std::cin >> username;
+
+    std::cout << "  name: ";
+    std::string name;
+    std::cin >> name;
+
+    std::cout << "  lastname: ";
+    std::string lastname;
+    std::cin >> lastname;
+
+    std::cout << "  age: ";
+    std::string age;
+    std::cin >> age;
+
+    std::cout << "  birthday: ";
+    std::string birthday;
+    std::cin >> birthday;
+
+    std::cout << "  status: ";
+    std::string status;
+    std::cin >> status;
+    /*
+    std::cout << "  note: ";
+    std::string note;
+    std::cin >> note;
+    */
+    std::cout << "  valid? (y/n) ";
+    std::string validation;
+    std::cin >> validation;
+
+    if (validation != "y"   &&
+        validation != "Y"   &&
+        validation != "yes" &&
+        validation != "YES" &&
+        validation != "Yes"
+        ) {
+            Warning("aborted");
+            return;
+        }
+
+    
+    Identity* id = new Identity();
+    if (username != "-1")   id->setUsername(username);
+    if (name != "-1")       id->setName(name);
+    if (lastname != "-1")   id->setLastname(lastname);
+    if (age != "-1")        id->setAge(stoi(age));
+    if (birthday != "-1")   id->setBirthday(birthday);
+    if (status != "-1")     id->setStatus(status);
+    //if (note != "-1")     id->setNote(note);
+
+    catalog->insert(id);
+
+    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NEW_IDENTITY));
+    catalog->save();
 }
 
 void Application::commandAdd() {

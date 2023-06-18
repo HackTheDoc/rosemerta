@@ -47,6 +47,7 @@ public:
     void addContact(std::string t, std::string detail);
     std::stack<Contact*>* getContacts();
     void removeContact(std::string contact, int index);
+    void removeContacts();
     void printContacts();
 
     friend std::ostream& operator<<(std::ostream& stream, const Identity& i);

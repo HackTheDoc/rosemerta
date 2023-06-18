@@ -19,10 +19,12 @@ public:
         CONTACTS,
         ID,
         SET,
-        DELETE,
         CREATE,
         ADD,
-        ADD_CONTACT
+        ADD_CONTACT,
+        DELETE,
+        REMOVE,
+        REMOVE_CONTACT
     };
 
     static std::string database;
@@ -64,8 +66,10 @@ private:
     void commandContacts();
     void commandID();
     void commandSet();
-    void commandDelete();
     void commandCreate();
     void commandAdd();
     void commandAddContact();
+    void commandDelete();
+    void commandRemove();
+    void commandRemoveContact();
 };

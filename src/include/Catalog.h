@@ -40,7 +40,8 @@ public:
     int count(const int& id);
 
     void erase(const int& id);
-    void eraseContact(const int& id, std::string type, int index = 1);
+    void removeContact(const int& id, std::string type, int index = 1);
+    void removeContacts(const int& id);
 
     void clear();
 

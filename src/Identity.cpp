@@ -174,6 +174,13 @@ void Identity::removeContact(std::string t, int index) {
     
 }
 
+void Identity::removeContacts() {
+    while (!contacts.empty()) {
+        delete contacts.top();
+        contacts.pop();
+    }
+}
+
 void Identity::printContacts() {
     std::cout << "Contacts of ";
     if (name != "unknown" && lastname != "unknown")

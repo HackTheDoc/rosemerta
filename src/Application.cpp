@@ -21,6 +21,8 @@ const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
     {"id"               , Application::Command::ID              },
     {"set"              , Application::Command::SET             },
     {"delete"           , Application::Command::DELETE          },
+    {"remove"           , Application::Command::REMOVE          },
+    {"remove-contact"   , Application::Command::REMOVE_CONTACT  },
     {"create"           , Application::Command::CREATE          },
     {"add"              , Application::Command::ADD             },
     {"add-contact"      , Application::Command::ADD_CONTACT     },
@@ -89,9 +91,6 @@ void Application::eval(std::string input) {
     case Application::Command::SET:
         commandSet();
         break;
-    case Application::Command::DELETE:
-        commandDelete();
-        break;
     case Application::Command::CREATE:
         commandCreate();
         break;
@@ -100,6 +99,15 @@ void Application::eval(std::string input) {
         break;
     case Application::Command::ADD_CONTACT:
         commandAddContact();
+        break;
+    case Application::Command::DELETE:
+        commandDelete();
+        break;
+    case Application::Command::REMOVE:
+        commandRemove();
+        break;
+    case Application::Command::REMOVE_CONTACT:
+        commandRemoveContact();
         break;
     case Application::Command::UNKNOWN:
     default:
@@ -151,11 +159,10 @@ void Application::commandHelp() {
     std::cout << "  contacts [id]               Display known contacts of a specific registered identity"       << std::endl;
     std::cout << "  id [name]                   Find the id of a registered identity"                           << std::endl;
     std::cout << "  set [id] [param] [value]    Set a new value for a specific param of a specific identity"    << std::endl;
-    std::cout << "  delete id [id]              Delete one's identity"                                          << std::endl;
-    std::cout << "         contact [id] [type]  Delete one's specific contact"                                  << std::endl;
     std::cout << "  create                      Create a new identity"                                          << std::endl;
-    std::cout << "  add                         Add a data about specific identity"                             << std::endl;
-    std::cout << "      contact"                                                                                << std::endl;
+    std::cout << "  add [attribute] [id]        Add an attribute to a specific identity"                        << std::endl;
+    std::cout << "  delete [id]                 Delete one's identity"                                          << std::endl;
+    std::cout << "  remove [attribute] [id]     Remove an attribute of an identity (ex: contact)"               << std::endl;
 }
 
 void Application::commandExit() {
@@ -282,39 +289,6 @@ void Application::commandSet() {
     else Error("unknown parameter \""+param+"\"");
 }
 
-void Application::commandDelete() {
-    if (buffer.size() < 2) {
-        Error("missing parameter(s)");
-        std::cout << "delete id [id]"                       << std::endl;
-        std::cout << "delete contact [id] [type] [index]"   << std::endl;
-        return;
-    }
-    if (buffer.at(1) != "id" && buffer.at(1) != "contact") {
-        Error("unknown parameter");
-        std::cout << "delete id [id]"                       << std::endl;
-        std::cout << "delete contact [id] [type] [index]"   << std::endl;
-        return;
-    }
-
-    if (buffer.at(1) == "id") {
-        if (buffer.size() < 3) {
-            Error("missing parameter \"id\"");
-            std::cout << "delete id [id]" << std::endl;
-            return;
-        }
-        catalog->erase(stoi(buffer.at(2)));
-    }
-    else {
-        if (buffer.size() <= 3) {
-            Error("missing parameter(s)");
-            std::cout << "delete contact [id] [type] [index=1]"   << std::endl;
-            return;
-        }
-        if (buffer.size() == 4) catalog->eraseContact(stoi(buffer.at(2)), buffer.at(3));
-        else catalog->eraseContact(stoi(buffer.at(2)), buffer.at(3), stoi(buffer.at(4)));
-    }
-}
-
 void Application::commandCreate() {
     // with full args
     /*if (buffer.size() >= 5) {
@@ -402,7 +376,7 @@ void Application::commandAdd() {
     }
     
     if (redirect == "contact") commandAddContact();
-    else Warning("aborted");
+    else Error("unknown parameter(s)");
 }
 
 void Application::commandAddContact() {
@@ -462,4 +436,39 @@ void Application::commandAddContact() {
     id->addContact(type, detail);
 
     Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::UPDATE_CONTACT));
+}
+
+void Application::commandDelete() {
+    if (buffer.size() < 2) {
+        Error("missing parameter \"id\"");
+        std::cout << "delete [id]" << std::endl;
+        return;
+    }
+    catalog->erase(stoi(buffer.at(1)));
+}
+
+void Application::commandRemove() {
+    if (buffer.size() < 2) {
+        Error("missing parameter");
+        std::cout << "remove [contact] [...]" << std::endl;
+        return;
+    }
+    std::string redirect = buffer.at(1);
+    if (redirect == "contact") commandRemoveContact();
+    else Error("unknown parameter(s)");
+}
+
+void Application::commandRemoveContact() {
+    if (buffer.size() == 4  && buffer.at(3) == "all") {
+        catalog->removeContacts(stoi(buffer.at(2)));
+        return;
+    }
+    if (buffer.size() < 4) {
+        Error("missing parameter(s)");
+        std::cout << "delete contact [id] [type] [index=1]"   << std::endl;
+        return;
+    }
+    
+    if (buffer.size() == 4) catalog->removeContact(stoi(buffer.at(2)), buffer.at(3));
+    else catalog->removeContact(stoi(buffer.at(2)), buffer.at(3), stoi(buffer.at(4)));
 }

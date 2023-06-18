@@ -461,18 +461,37 @@ int Catalog::count(const int& id) {
 
 void Catalog::erase(const int& id) {
     Identity* i = at(id);
-    if (i == nullptr) return;
+    if (i == nullptr) {
+        Application::Error("unknown id '"+std::to_string(id)+"'");
+        return;
+    }
 
     items.erase(id);
     deletedItems.insert(std::make_pair(id, i));
     changelog.insert(std::make_pair(id, ERASE));
 }
 
-void Catalog::eraseContact(const int& id, std::string type, int index) {
+void Catalog::removeContact(const int& id, std::string type, int index) {
     Identity* i = this->at(id);
-    if (i == nullptr) return;
+    if (i == nullptr) {
+        Application::Error("unknown id '"+std::to_string(id)+"'");
+        return;
+    }
     i->removeContact(type, index);
     changelog.insert(std::make_pair(id, UPDATE_CONTACT));
+    save();
+}
+
+void Catalog::removeContacts(const int& id) {
+    Identity* i = this->at(id);
+    if (i == nullptr) {
+        Application::Error("unknown id '"+std::to_string(id)+"'");
+        return;
+    }
+    i->removeContacts();
+    changelog.insert(std::make_pair(id, UPDATE_CONTACT));
+
+    save();
 }
 
 void Catalog::clear() {

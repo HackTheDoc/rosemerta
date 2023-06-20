@@ -36,7 +36,7 @@ public:
     Application();
     ~Application();
 
-    void init();
+    void init(std::string username, bool n);
     void start();
     void run();
     void kill();
@@ -57,6 +57,8 @@ private:
     static const std::map<std::string, Application::Command> STRING_TO_ORDER;
 
     std::vector<std::string> buffer;
+
+    void createNewDatabase();
 
     void parseInput();
 

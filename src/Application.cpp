@@ -6,7 +6,7 @@
 #include <sstream>
 #include <cstdlib>
 
-std::string Application::database = "./database.db";
+std::string Application::database = "./databases/unknown.db";
 Catalog* Application::catalog = nullptr;
 bool Application::isRunning = false;
 
@@ -34,13 +34,18 @@ Application::Application() {}
 
 Application::~Application() {}
 
-void Application::init() {    
+void Application::init(std::string username, bool n) { 
+    std::cout << username << std::endl;
+    database = "./database/"+username+".db";
+
+    if (n) createNewDatabase();
+
     catalog = new Catalog();
     catalog->load();
 }
 
 void Application::start() {
-    commandClear();
+    //commandClear();
 
     std::cout << "try out ";
     std::cout << "\033[33m" << "help" << "\033[0m";
@@ -124,6 +129,25 @@ void Application::eval(std::string input) {
         Error("command \""+buffer.at(0)+"\" is unkown");
         break;
     }
+}
+
+void Application::createNewDatabase() {
+    sqlite3* db;
+    sqlite3_open(database.c_str(), &db);
+
+    std::string identityQuery = "CREATE TABLE IF NOT EXISTS \"identity\" (\"id\" INTEGER UNIQUE, \"username\" TEXT,	\"name\" TEXT, \"lastname\"	TEXT, \"age\" INTEGER, \"birthday\"	TEXT, \"status\" INTEGER, \"notes\"	TEXT, PRIMARY KEY(\"id\"));";
+    if (sqlite3_exec(db, identityQuery.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
+        Error(sqlite3_errmsg(db));
+        return;
+    }
+
+    std::string contactQuery = "CREATE TABLE IF NOT EXISTS \"contact\" (\"owner\" INTEGER, \"type\" INTEGER, \"detail\" TEXT);";
+    if (sqlite3_exec(db, contactQuery.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
+        Error(sqlite3_errmsg(db));
+        return;
+    }
+
+    sqlite3_close(db);
 }
 
 void Application::parseInput() {

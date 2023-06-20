@@ -13,14 +13,13 @@ Catalog::Catalog() : loadedCapacity(0) {}
 Catalog::~Catalog() {}
 
 void Catalog::load() {
-    loadIdentities();
-    loadContacts();
-    loadLocations();
+    if (!loadIdentities() || !loadContacts() || !loadLocations())
+        Application::isRunning = false;
 
     loadedCapacity = items.size();
 }
 
-void Catalog::loadIdentities() {
+bool Catalog::loadIdentities() {
     sqlite3* db;
     sqlite3_open(Application::database.c_str(), &db);
 
@@ -29,7 +28,7 @@ void Catalog::loadIdentities() {
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
         std::cout << "Error preparing SQL statement: " << sqlite3_errmsg(db);
-        return;
+        return false;
     }
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -48,9 +47,11 @@ void Catalog::loadIdentities() {
     sqlite3_finalize(stmt);
 
     sqlite3_close(db);
+
+    return true;
 }
 
-void Catalog::loadContacts() {
+bool Catalog::loadContacts() {
     sqlite3* db;
     sqlite3_open(Application::database.c_str(), &db);
 
@@ -58,7 +59,10 @@ void Catalog::loadContacts() {
         std::string sql = "SELECT * FROM contact WHERE owner = ? ORDER BY type DESC;";
         sqlite3_stmt* stmt;
         
-        sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+        if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+            std::cout << "Error preparing SQL statement: " << sqlite3_errmsg(db);
+            return false;
+        }
         sqlite3_bind_int(stmt, 1, item.first);
 
         while (sqlite3_step(stmt) == SQLITE_ROW) {
@@ -72,10 +76,13 @@ void Catalog::loadContacts() {
     }
 
     sqlite3_close(db);
+
+    return true;
 }
 
-void Catalog::loadLocations() {
+bool Catalog::loadLocations() {
     // TODO
+    return true;
 }
 
 void Catalog::save() {

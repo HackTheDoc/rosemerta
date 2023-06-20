@@ -62,9 +62,9 @@ private:
 
     int nextFreeID();
 
-    void loadIdentities();
-    void loadContacts();
-    void loadLocations();
+    bool loadIdentities();
+    bool loadContacts();
+    bool loadLocations();
 
     void updateUsername(int id);
     void updateName(int id);

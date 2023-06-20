@@ -21,6 +21,7 @@ Project is created with:
 
 - CPP
 - SQLITE 3
+- DOCOPT
 
 ## Setup
 

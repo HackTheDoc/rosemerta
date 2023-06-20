@@ -34,8 +34,7 @@ Application::Application() {}
 
 Application::~Application() {}
 
-void Application::init(std::string username, bool n) { 
-    std::cout << username << std::endl;
+void Application::init(std::string username, bool n) {
     database = "./database/"+username+".db";
 
     if (n) createNewDatabase();
@@ -45,7 +44,7 @@ void Application::init(std::string username, bool n) {
 }
 
 void Application::start() {
-    //commandClear();
+    commandClear();
 
     std::cout << "try out ";
     std::cout << "\033[33m" << "help" << "\033[0m";

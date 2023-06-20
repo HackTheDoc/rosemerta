@@ -204,11 +204,73 @@ void Identity::printContacts() {
     }
 }
 
+void Identity::addNotes(std::string n) {
+    std::stringstream ss(n);
+    std::string s;
+    while (getline(ss, s, '_')) {
+        addNote(s);
+    }
+}
+
+void Identity::addNote(std::string n) {
+    if (n.size() == 0) return;
+    notes.push_back(n);
+}
+
+std::string Identity::getNotes() {
+    if (notes.size() == 0) return "";
+
+    std::string s = notes.at(0);
+    for (int i = 1; i < (int)notes.size(); i++) s += "_" + notes.at(i);
+    return s;
+}
+
+void Identity::removeNotes() {
+    notes.clear();
+}
+
+void Identity::removeNote(int i) {
+    if (i == 0 || i > (int)notes.size()) return;
+    notes.erase(notes.begin() + std::max(1, std::min(i, (int)notes.size()-1)));
+}
+
+void Identity::resume() {
+    std::cout << "Username : " << username << std::endl;
+
+    std::cout << "Name     : " << name << " " << lastname << std::endl;
+
+    std::cout << "Age      : " << age << std::endl;
+
+    std::cout << "Birthday : " << birthday << std::endl;
+
+    std::cout << "Status   : ";
+    
+    switch (status) {
+    case Identity::Status::ALIVE:
+        std::cout << "\033[32m";
+        break;
+    case Identity::Status::DEAD:
+        std::cout << "\033[31m";
+        break;
+    case Identity::Status::UNKNOWN:
+    default:
+        std::cout << "\033[30m";
+        break;
+    }
+
+    std::cout << STATUS_TO_STRING.at(status);
+    std::cout << "\033[0m" << std::endl;
+}
+
 std::ostream& operator<<(std::ostream& stream, const Identity& i) {
     stream << "Username : " << i.username << std::endl;
+
     stream << "Name     : " << i.name << " " << i.lastname << std::endl;
+
     stream << "Age      : " << i.age << std::endl;
+
     stream << "Birthday : " << i.birthday << std::endl;
+
     stream << "Status   : ";
     
     switch (i.status) {
@@ -225,7 +287,14 @@ std::ostream& operator<<(std::ostream& stream, const Identity& i) {
     }
 
     stream << i.STATUS_TO_STRING.at(i.status);
-    stream << "\033[0m";
-    
+    stream << "\033[0m" << std::endl;
+
+    stream << "Notes    : ";
+    for (auto n : i.notes) {
+        stream << std::endl;
+        stream << "          - ";
+        stream << n;
+    }
+
     return stream;
 }

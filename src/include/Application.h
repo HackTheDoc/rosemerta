@@ -22,9 +22,11 @@ public:
         CREATE,
         ADD,
         ADD_CONTACT,
+        ADD_NOTE,
         DELETE,
         REMOVE,
-        REMOVE_CONTACT
+        REMOVE_CONTACT,
+        REMOVE_NOTE
     };
 
     static std::string database;
@@ -69,7 +71,9 @@ private:
     void commandCreate();
     void commandAdd();
     void commandAddContact();
+    void commandAddNote();
     void commandDelete();
     void commandRemove();
     void commandRemoveContact();
+    void commandRemoveNote();
 };

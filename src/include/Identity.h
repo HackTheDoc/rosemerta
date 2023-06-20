@@ -50,6 +50,13 @@ public:
     void removeContacts();
     void printContacts();
 
+    void addNotes(std::string n);
+    void addNote(std::string n);
+    std::string getNotes();
+    void removeNotes();
+    void removeNote(int i = 1);
+
+    void resume();
     friend std::ostream& operator<<(std::ostream& stream, const Identity& i);
 
 private:
@@ -65,6 +72,8 @@ private:
     int age;
 
     Identity::Status status;
+
+    std::vector<std::string> notes;
 
     std::stack<Contact*> contacts;
 };

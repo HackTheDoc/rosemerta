@@ -36,7 +36,7 @@ void Contact::setType(Contact::Type type) {
 void Contact::addDetails(std::string details) {
     std::stringstream ss(details);
     std::string s;
-    while (getline(ss, s, '-')) {
+    while (getline(ss, s, '_')) {
         addDetail(s);
     }
 }
@@ -60,7 +60,7 @@ Contact::Type Contact::getType() {
 std::string Contact::getDetails() {
     std::string s = details.at(0);
     for (int i = 1; i < (int)details.size(); i++)
-        s += "-" + details.at(i);
+        s += "_" + details.at(i);
     return s;
 }
 

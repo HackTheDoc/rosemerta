@@ -18,6 +18,7 @@ public:
         AGE,
         BIRTHDAY,
         STATUS,
+        NOTES,
         ERASE,
         UPDATE_CONTACT
     };
@@ -50,6 +51,7 @@ public:
     std::unordered_map<int, Identity*>::const_iterator begin() const noexcept;
     std::unordered_map<int, Identity*>::const_iterator end() const noexcept;
 
+    void display();
     friend std::ostream& operator<<(std::ostream& stream, const Catalog& c);
 
 private:
@@ -70,6 +72,7 @@ private:
     void updateAge(int id);
     void updateBirthday(int id);
     void updateStatus(int id);
+    void updateNotes(int id);
     void eraseID(int id);
     void updateContacts(int id);
     void saveIdentity(int id);

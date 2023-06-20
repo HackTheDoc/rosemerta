@@ -20,12 +20,14 @@ const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
     {"contacts"         , Application::Command::CONTACTS        },
     {"id"               , Application::Command::ID              },
     {"set"              , Application::Command::SET             },
-    {"delete"           , Application::Command::DELETE          },
-    {"remove"           , Application::Command::REMOVE          },
-    {"remove-contact"   , Application::Command::REMOVE_CONTACT  },
     {"create"           , Application::Command::CREATE          },
     {"add"              , Application::Command::ADD             },
     {"add-contact"      , Application::Command::ADD_CONTACT     },
+    {"add-note"         , Application::Command::ADD_NOTE        },
+    {"delete"           , Application::Command::DELETE          },
+    {"remove"           , Application::Command::REMOVE          },
+    {"remove-contact"   , Application::Command::REMOVE_CONTACT  },
+    {"remove-note"      , Application::Command::REMOVE_NOTE     },
 };
 
 Application::Application() {}
@@ -40,7 +42,9 @@ void Application::init() {
 void Application::start() {
     commandClear();
 
-    commandHelp();
+    std::cout << "try out ";
+    std::cout << "\033[33m" << "help" << "\033[0m";
+    std::cout << " command!" << std::endl;
 
     isRunning = true;
 }
@@ -100,6 +104,9 @@ void Application::eval(std::string input) {
     case Application::Command::ADD_CONTACT:
         commandAddContact();
         break;
+    case Application::Command::ADD_NOTE:
+        commandAddNote();
+        break;
     case Application::Command::DELETE:
         commandDelete();
         break;
@@ -108,6 +115,9 @@ void Application::eval(std::string input) {
         break;
     case Application::Command::REMOVE_CONTACT:
         commandRemoveContact();
+        break;
+    case Application::Command::REMOVE_NOTE:
+        commandRemoveNote();
         break;
     case Application::Command::UNKNOWN:
     default:
@@ -183,7 +193,7 @@ void Application::commandClear() {
     #endif
     
     std::cout << " _______________________________________________" << std::endl;
-    std::cout << "|  ____  _____ ____  ____   ___  _   _    _ v0.1|" << std::endl;
+    std::cout << "|  ____  _____ ____  ____   ___  _   _    _ v0.2|" << std::endl;
     std::cout << "| |  _ \\| ____|  _ \\/ ___| / _ \\| \\ | |  / \\    |" << std::endl;
     std::cout << "| | |_) |  _| | |_) \\___ \\| | | |  \\| | / _ \\   |" << std::endl;
     std::cout << "| |  __/| |___|  _ < ___) | |_| | |\\  |/ ___ \\  |" << std::endl;
@@ -201,7 +211,7 @@ void Application::commandSave() {
 
 void Application::commandCatalog() {
     if (buffer.size() == 1) {
-        std::cout << *catalog << std::endl;
+        catalog->display();
         return;
     }
 
@@ -290,21 +300,7 @@ void Application::commandSet() {
 }
 
 void Application::commandCreate() {
-    // with full args
-    /*if (buffer.size() >= 5) {
-        std::string details = buffer.at(4);
-        for (int i = 5; i < (int)buffer.size(); i++)
-            details += "|" + buffer.at(i);
-
-        Identity* id = catalog->at(stoi(buffer.at(2)));
-        if (id == nullptr) return;
-
-        id->addContact(buffer.at(3), details);
-
-        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NEW_IDENTITY));
-
-        return;
-    }*/
+    // TODO: with full args
 
     // manual creation
     Warning("use '-1' value to set to unknown");
@@ -331,11 +327,11 @@ void Application::commandCreate() {
     std::cout << "  status: ";
     std::string status;
     std::cin >> status;
-    /*
+    
     std::cout << "  note: ";
     std::string note;
     std::cin >> note;
-    */
+    
     std::cout << "  valid? (y/n) ";
     std::string validation;
     std::cin >> validation;
@@ -349,6 +345,9 @@ void Application::commandCreate() {
             Warning("aborted");
             return;
         }
+    
+    if (age == "-1") age = "0";
+    if (note == "-1") note = "";
 
     
     Identity* id = new Identity();
@@ -358,7 +357,7 @@ void Application::commandCreate() {
     if (age != "-1")        id->setAge(stoi(age));
     if (birthday != "-1")   id->setBirthday(birthday);
     if (status != "-1")     id->setStatus(status);
-    //if (note != "-1")     id->setNote(note);
+    if (note != "-1")       id->addNote(note);
 
     catalog->insert(id);
 
@@ -376,6 +375,7 @@ void Application::commandAdd() {
     }
     
     if (redirect == "contact") commandAddContact();
+    else if (redirect == "note") commandAddNote();
     else Error("unknown parameter(s)");
 }
 
@@ -438,6 +438,53 @@ void Application::commandAddContact() {
     Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::UPDATE_CONTACT));
 }
 
+void Application::commandAddNote() {
+    // with full args
+    if (buffer.size() >= 4) {
+        Identity* id = catalog->at(stoi(buffer.at(2)));
+        if (id == nullptr) return;
+
+        id->addNote(buffer.at(3));
+
+        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+
+        return;
+    }
+
+    // manual creation
+    Warning("use \"\" if you try to input with spaces");
+    std::cout << "  owner id: ";
+    std::string r_owner;
+    std::cin >> r_owner;
+
+    std::cout << "  note: ";
+    std::string note;
+    std::cin >> note;
+
+    std::cout << "  valid? (y/n) ";
+    std::string validation;
+    std::cin >> validation;
+
+    if (validation != "" &&
+        validation != "y"   &&
+        validation != "Y"   &&
+        validation != "yes" &&
+        validation != "YES" &&
+        validation != "Yes"
+        ) {
+            Warning("aborted");
+            return;
+        }
+
+    
+    Identity* id = catalog->at(stoi(r_owner));
+    if (id == nullptr) return;
+
+    id->addNote(note);
+
+    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+}
+
 void Application::commandDelete() {
     if (buffer.size() < 2) {
         Error("missing parameter \"id\"");
@@ -450,11 +497,12 @@ void Application::commandDelete() {
 void Application::commandRemove() {
     if (buffer.size() < 2) {
         Error("missing parameter");
-        std::cout << "remove [contact] [...]" << std::endl;
+        std::cout << "remove [attribute] [id] [...]" << std::endl;
         return;
     }
     std::string redirect = buffer.at(1);
     if (redirect == "contact") commandRemoveContact();
+    else if (redirect == "note") commandRemoveNote();
     else Error("unknown parameter(s)");
 }
 
@@ -471,4 +519,28 @@ void Application::commandRemoveContact() {
     
     if (buffer.size() == 4) catalog->removeContact(stoi(buffer.at(2)), buffer.at(3));
     else catalog->removeContact(stoi(buffer.at(2)), buffer.at(3), stoi(buffer.at(4)));
+}
+
+void Application::commandRemoveNote() {
+    if (buffer.size() == 4  && buffer.at(3) == "all") {
+        Identity* id = catalog->at(stoi(buffer.at(2)));
+        if (id != nullptr) {
+            id->removeNotes();
+            catalog->changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+        }
+        return;
+    }
+    if (buffer.size() < 3) {
+        Error("missing parameter(s)");
+        std::cout << "delete contact [id] [index=1]"   << std::endl;
+        return;
+    }
+    
+    Identity* id = catalog->at(stoi(buffer.at(2)));
+    if (id == nullptr) return;
+    
+    if (buffer.size() == 3) id->removeNote();
+    else id->removeNote(stoi(buffer.at(3)));
+            
+    catalog->changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
 }

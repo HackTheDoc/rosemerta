@@ -41,6 +41,7 @@ void Catalog::loadIdentities() {
         id->setAge(sqlite3_column_int(stmt, 4));
         id->setBirthday((const char*)sqlite3_column_text(stmt, 5));
         id->setStatus(sqlite3_column_int(stmt, 6));
+        id->addNotes((const char*)sqlite3_column_text(stmt, 7));
         items[id->getID()] = id;
     }
 
@@ -97,6 +98,9 @@ void Catalog::save() {
             break;
         case ChangingType::STATUS:
             updateStatus(change.first);
+            break;
+        case ChangingType::NOTES:
+            updateNotes(change.first);
             break;
         case ChangingType::ERASE:
             eraseID(change.first);
@@ -229,6 +233,25 @@ void Catalog::updateStatus(int id) {
     sqlite3_close(db);
 }
 
+void Catalog::updateNotes(int id) {
+    sqlite3* db;
+    sqlite3_open(Application::database.c_str(), &db);
+
+    std::string v = items.at(id)->getNotes();
+    std::string sql = "UPDATE identity SET notes = ? WHERE id = ?;";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+    sqlite3_bind_text(stmt, 1, v.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, id);
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cout << "\033[31m" << "Failed to update: " << "\033[0m";
+        std::cout << sqlite3_errmsg(db) << std::endl;
+    }
+    sqlite3_finalize(stmt);
+
+    sqlite3_close(db);
+}
+
 void Catalog::eraseID(int id) {
     Identity* i = deletedItems.at(id);
     i->clear();
@@ -300,7 +323,7 @@ void Catalog::saveIdentity(int id) {
     sqlite3* db;
     sqlite3_open(Application::database.c_str(), &db);
 
-    std::string insertQuery = "INSERT INTO identity (id, username, name, lastname, age, birthday, status) VALUES (?,?,?,?,?,?,?);";
+    std::string insertQuery = "INSERT INTO identity (id, username, name, lastname, age, birthday, status, notes) VALUES (?,?,?,?,?,?,?,?);";
     sqlite3_stmt* insertStatement;
     sqlite3_prepare_v2(db, insertQuery.c_str(), -1, &insertStatement, nullptr);
 
@@ -311,6 +334,7 @@ void Catalog::saveIdentity(int id) {
     sqlite3_bind_int(insertStatement , 5, i->getAge());
     sqlite3_bind_text(insertStatement, 6, i->getBirthday().c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int(insertStatement , 7, i->getStatus());
+    sqlite3_bind_text(insertStatement, 8, i->getNotes().c_str()   , -1, SQLITE_STATIC);
 
     if (sqlite3_step(insertStatement) != SQLITE_DONE) {
         Application::Error(sqlite3_errmsg(db));
@@ -521,6 +545,18 @@ int Catalog::nextFreeID() {
     int id = 1;
     while (id <= (int)items.size() && items[id]->getID()) id++;
     return id;
+}
+
+void Catalog::display() {
+    std::cout << " ---------- Catalog ----------";
+    
+    for (auto i : items) {
+        std::cout << std::endl;
+        i.second->resume();
+    }
+    if (items.size() == 0) std::cout << std::endl;
+    std::cout << " -----------------------------";
+    std::cout << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& stream, const Catalog& c) {

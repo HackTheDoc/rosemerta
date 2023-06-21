@@ -23,15 +23,11 @@ const std::map<std::string, Contact::Type> Contact::STRING_TO_TYPE = {
 };
 
 Contact::Contact(Contact::Type type, std::string detail) {
-    setType(type);
+    this->type = type;
     addDetails(detail);
 }
 
 Contact::~Contact() {}
-
-void Contact::setType(Contact::Type type) {
-    this->type = type;
-}
 
 void Contact::addDetails(std::string details) {
     std::stringstream ss(details);

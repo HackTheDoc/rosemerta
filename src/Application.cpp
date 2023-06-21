@@ -10,7 +10,7 @@ std::string Application::database = "./databases/unknown.db";
 Catalog* Application::catalog = nullptr;
 bool Application::isRunning = false;
 
-const std::map<std::string, Application::Command> Application::STRING_TO_ORDER {
+const std::map<std::string, Application::Command> Application::STRING_TO_COMMAND {
     {"unknown"          , Application::Command::UNKNOWN         },
     {"help"             , Application::Command::HELP            },
     {"exit"             , Application::Command::EXIT            },
@@ -66,13 +66,13 @@ void Application::kill() {
     catalog = nullptr;
 }
 
-Application::Command Application::convertToOrder(std::string s) {
-    if (STRING_TO_ORDER.count(s) <= 0) return Application::Command::UNKNOWN;
-    else return STRING_TO_ORDER.at(s);
+Application::Command Application::convertToCommand(std::string s) {
+    if (STRING_TO_COMMAND.count(s) <= 0) return Application::Command::UNKNOWN;
+    else return STRING_TO_COMMAND.at(s);
 }
 
 void Application::eval(std::string input) {
-    Application::Command c = convertToOrder(input);
+    Application::Command c = convertToCommand(input);
 
     switch (c) {
     case Application::Command::HELP:
@@ -283,10 +283,11 @@ void Application::commandSet() {
     if (buffer.size() < 4) {
         Error("missing parameter(s)");
         std::cout << "set <id> <param> <value>"                         << std::endl;
+        std::cout << "          username [string]"                      << std::endl;
         std::cout << "          name [string]"                          << std::endl;
         std::cout << "          lastname [string]"                      << std::endl;
         std::cout << "          age [int]"                              << std::endl;
-        std::cout << "          birthday [DD-MM-YY] [MM-YY] [DD-MM]"    << std::endl;
+        std::cout << "          birthday [DD-MM-YY]"                    << std::endl;
         std::cout << "          status [alive] [dead] [unknown]"        << std::endl;
         return;
     }
@@ -297,27 +298,27 @@ void Application::commandSet() {
 
     if (param == "username") {
         catalog->at(id)->setUsername(value);
-        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::USERNAME));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangelogType::USERNAME));
     }
     else if (param == "name") {
         catalog->at(id)->setName(value);
-        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::NAME));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangelogType::NAME));
     }
     else if (param == "lastname") {
         catalog->at(id)->setLastname(value);
-        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::LASTNAME));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangelogType::LASTNAME));
     }
     else if (param == "age") {
         catalog->at(id)->setAge(stoi(value));
-        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::AGE));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangelogType::AGE));
     }
     else if (param == "birthday") {
         catalog->at(id)->setBirthday(value);
-        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::BIRTHDAY));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangelogType::BIRTHDAY));
     }
     else if (param == "status") {
         catalog->at(id)->setStatus(value);
-        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangingType::STATUS));
+        Catalog::changelog.insert(std::make_pair(id, Catalog::ChangelogType::STATUS));
     }
     else Error("unknown parameter \""+param+"\"");
 }
@@ -340,8 +341,14 @@ void Application::commandCreate() {
     std::cin >> lastname;
 
     std::cout << "  age: ";
-    std::string age;
-    std::cin >> age;
+    std::string r_age;
+    std::cin >> r_age;
+    int age = 0;
+    try {
+        age = stoi(r_age);
+    }
+    catch(const std::exception& e) {}
+    
 
     std::cout << "  birthday: ";
     std::string birthday;
@@ -350,10 +357,6 @@ void Application::commandCreate() {
     std::cout << "  status: ";
     std::string status;
     std::cin >> status;
-    
-    std::cout << "  note: ";
-    std::string note;
-    std::cin >> note;
     
     std::cout << "  valid? (y/n) ";
     std::string validation;
@@ -368,30 +371,27 @@ void Application::commandCreate() {
             Warning("aborted");
             return;
         }
-    
-    if (age == "-1") age = "0";
-    if (note == "-1") note = "";
 
     
     Identity* id = new Identity();
     if (username != "-1")   id->setUsername(username);
     if (name != "-1")       id->setName(name);
     if (lastname != "-1")   id->setLastname(lastname);
-    if (age != "-1")        id->setAge(stoi(age));
+    id->setAge(age);
     if (birthday != "-1")   id->setBirthday(birthday);
     if (status != "-1")     id->setStatus(status);
-    if (note != "-1")       id->addNote(note);
 
     catalog->insert(id);
 
-    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NEW_IDENTITY));
+    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::NEW_IDENTITY));
     catalog->save();
 }
 
 void Application::commandAdd() {
     std::string redirect;
     if (buffer.size() < 2) {
-        std::cout << "  type of information (ex:contact): ";
+        std::cout << "  valid types : contact, note" << std::endl;
+        std::cout << "  select type of information : ";
         std::cin >> redirect;
     } else {
         redirect = buffer.at(1);
@@ -414,7 +414,7 @@ void Application::commandAddContact() {
 
         id->addContact(buffer.at(3), details);
 
-        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::UPDATE_CONTACT));
+        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::UPDATE_CONTACT));
 
         return;
     }
@@ -458,7 +458,7 @@ void Application::commandAddContact() {
 
     id->addContact(type, detail);
 
-    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::UPDATE_CONTACT));
+    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::UPDATE_CONTACT));
 }
 
 void Application::commandAddNote() {
@@ -469,7 +469,7 @@ void Application::commandAddNote() {
 
         id->addNote(buffer.at(3));
 
-        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+        Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::NOTES));
 
         return;
     }
@@ -505,7 +505,7 @@ void Application::commandAddNote() {
 
     id->addNote(note);
 
-    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+    Catalog::changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::NOTES));
 }
 
 void Application::commandDelete() {
@@ -549,7 +549,7 @@ void Application::commandRemoveNote() {
         Identity* id = catalog->at(stoi(buffer.at(2)));
         if (id != nullptr) {
             id->removeNotes();
-            catalog->changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+            catalog->changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::NOTES));
         }
         return;
     }
@@ -565,5 +565,5 @@ void Application::commandRemoveNote() {
     if (buffer.size() == 3) id->removeNote();
     else id->removeNote(stoi(buffer.at(3)));
             
-    catalog->changelog.insert(std::make_pair(id->getID(), Catalog::ChangingType::NOTES));
+    catalog->changelog.insert(std::make_pair(id->getID(), Catalog::ChangelogType::NOTES));
 }

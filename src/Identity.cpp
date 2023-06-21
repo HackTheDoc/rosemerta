@@ -12,7 +12,7 @@ const std::map<Identity::Status, std::string> Identity::STATUS_TO_STRING = {
 };
 
 Identity::Identity() {
-    id = -1;
+    id = 0;
     username = "unknown";
 
     name = "unknown";
@@ -35,6 +35,8 @@ void Identity::clear()  {
 }
 
 void Identity::setID(int id) {
+    if (this->id != 0) return;
+
     this->id = id;
 }
 

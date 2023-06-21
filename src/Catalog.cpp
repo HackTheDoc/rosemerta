@@ -6,7 +6,7 @@
 #include <sqlite3.h>
 #include <stack>
 
-std::set<std::pair<int, Catalog::ChangingType>> Catalog::changelog = {};
+std::set<std::pair<int, Catalog::ChangelogType>> Catalog::changelog = {};
 
 Catalog::Catalog() : loadedCapacity(0) {}
 
@@ -88,34 +88,34 @@ bool Catalog::loadLocations() {
 void Catalog::save() {
     for (auto change : changelog) {
         switch (change.second) {
-        case ChangingType::USERNAME:
+        case ChangelogType::USERNAME:
             updateUsername(change.first);
             break;
-        case ChangingType::NAME:
+        case ChangelogType::NAME:
             updateName(change.first);
             break;
-        case ChangingType::LASTNAME:
+        case ChangelogType::LASTNAME:
             updateLastname(change.first);
             break;
-        case ChangingType::AGE:
+        case ChangelogType::AGE:
             updateAge(change.first);
             break;
-        case ChangingType::BIRTHDAY:
+        case ChangelogType::BIRTHDAY:
             updateBirthday(change.first);
             break;
-        case ChangingType::STATUS:
+        case ChangelogType::STATUS:
             updateStatus(change.first);
             break;
-        case ChangingType::NOTES:
+        case ChangelogType::NOTES:
             updateNotes(change.first);
             break;
-        case ChangingType::ERASE:
+        case ChangelogType::ERASE:
             eraseID(change.first);
             break;
-        case ChangingType::UPDATE_CONTACT:
+        case ChangelogType::UPDATE_CONTACT:
             updateContacts(change.first);
             break;
-        case ChangingType::NEW_IDENTITY:
+        case ChangelogType::NEW_IDENTITY:
             saveIdentity(change.first);
             break;
         default:
@@ -424,7 +424,7 @@ std::set<int> Catalog::findByName(std::string name) {
     sqlite3_stmt* stmt;
 
     sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
-    sqlite3_bind_text(stmt, 1, name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, ("%"+name+"%").c_str(), -1, SQLITE_STATIC);
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         int id = sqlite3_column_int(stmt, 0);
@@ -532,22 +532,6 @@ void Catalog::clear() {
     items.clear();
 }
 
-std::unordered_map<int, Identity*>::iterator Catalog::begin() noexcept {
-    return items.begin();
-}
-
-std::unordered_map<int, Identity*>::iterator Catalog::end() noexcept {
-    return items.end();
-}
-
-std::unordered_map<int, Identity*>::const_iterator Catalog::begin() const noexcept {
-    return items.cbegin();
-}
-
-std::unordered_map<int, Identity*>::const_iterator Catalog::end() const noexcept {
-    return items.cend();
-}
-
 int Catalog::nextFreeID() {
     int id = 1;
     while (id <= (int)items.size() && items[id]->getID()) id++;
@@ -564,17 +548,4 @@ void Catalog::display() {
     if (items.size() == 0) std::cout << std::endl;
     std::cout << " -----------------------------";
     std::cout << std::endl;
-}
-
-std::ostream& operator<<(std::ostream& stream, const Catalog& c) {
-    stream << " ---------- Catalog ----------";
-    
-    for (auto i : c.items) {
-        stream << std::endl;
-        stream << *i.second << std::endl;
-    }
-    if (c.items.size() == 0) stream << std::endl;
-    stream << " -----------------------------";
-
-    return stream;
 }

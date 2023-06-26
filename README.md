@@ -21,7 +21,7 @@ Project is created with:
 
 - CPP
 - SQLITE 3
-- DOCOPT
+- SDL2
 
 ## Setup
 
@@ -40,6 +40,7 @@ $ ./persona
 ### To do
 
 - GUI
+- Login/Register system
 
 ## Authors
 

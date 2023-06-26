@@ -1,54 +1,31 @@
 #include <iostream>
-#include <docopt/docopt.h>
-#include <string>
-#include <map>
+#include <SDL2/SDL.h>
 
+#include "include/Window.h"
 
-#include "include/Application.h"
+#define FPS         60
+#define FRAME_DELAY 1000 / FPS
 
-Application app;
+Window window;
 
-const char* USAGE =
-R"(Persona.
+int main() {
+    Uint32 frameStart;
+    int frameTime;
 
-    Usage:
-      persona register
-      persona login
-      persona (-h | --help)
-      persona --version
+    if (window.init() != 0) return -1;
 
-    Options:
-      -h --help     Show this screen.
-      --version     Show version.
-)";
+    while (Window::isRunning) {
+        frameStart = SDL_GetTicks();
 
-int main(int argc, const char* argv[]) {
-    std::string username = "unknown";
-    bool n = false;
+        window.handleEvents();
+        window.update();
+        window.render();
 
-    std::map<std::string, docopt::value> args
-        = docopt::docopt(USAGE,
-                        {argv + 1, argv + argc},
-                        true,
-                        "Persona 0.2");
-    
-    if (args["register"].asBool()) {
-        n = true;
-        std::cout << "  username: ";
-        std::cin >> username;
-    }
-    else if (args["login"].asBool()) {
-        std::cout << "  username: ";
-        std::cin >> username;
+        frameTime = SDL_GetTicks() - frameStart;
+        if (frameTime < FRAME_DELAY) SDL_Delay(FRAME_DELAY - frameTime);
     }
 
-    app.init(username, n);
-
-    app.start();
-
-    while (Application::isRunning) app.run();
-
-    app.kill();
+    window.kill();
 
     return 0;
 }

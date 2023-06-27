@@ -6,7 +6,7 @@ UILabel::UILabel(std::string text, std::string type) {
     this->text = text;
     this->type = type;
     rect.w = 512;
-    setColor("black");
+    setColor("font");
 }
 
 UILabel::UILabel(std::string text, int w, std::string type) {
@@ -14,7 +14,7 @@ UILabel::UILabel(std::string text, int w, std::string type) {
     this->text = text;
     this->type = type;
     rect.w = w;
-    setColor("black");
+    setColor("font");
 }
 
 void UILabel::setColor(std::string color) {

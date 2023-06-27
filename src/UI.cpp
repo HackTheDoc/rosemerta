@@ -6,9 +6,9 @@ UI::UI() {}
 UI::~UI() {}
 
 void UI::init() {
-    UILabel* title = new UILabel("Persona", "title");
-    title->place(Window::screen.w - title->width(), 4);
-    add("title", title);
+    Header* h = new Header();
+    h->init();
+    elements["header"] = h;
 }
 
 void UI::update() {

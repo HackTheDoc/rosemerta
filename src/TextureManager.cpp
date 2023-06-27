@@ -28,6 +28,8 @@ SDL_Texture* TextureManager::GenerateText(const char* text, std::string fontName
 }
 
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_Rect* dest) {
+    if (texture == nullptr) return;
+
     SDL_RenderCopy(Window::renderer, texture, src, dest);
 }
 
@@ -39,5 +41,27 @@ void TextureManager::DrawRect(SDL_Rect* rect, std::string color) {
 
     SDL_RenderDrawRect(Window::renderer, rect);
 
+    Window::manager->setColor(t);
+}
+
+void TextureManager::DrawFilledRect(SDL_Rect* rect, std::string color) {
+    SDL_Color t;
+    SDL_GetRenderDrawColor(Window::renderer, &t.r, &t.g, &t.b, &t.a);
+    
+    Window::manager->setColor(color);
+
+    SDL_RenderFillRect(Window::renderer, rect);
+
+    Window::manager->setColor(t);
+}
+
+void TextureManager::DrawLine(int x1, int y1, int x2, int y2, std::string color) {
+    SDL_Color t;
+    SDL_GetRenderDrawColor(Window::renderer, &t.r, &t.g, &t.b, &t.a);
+    
+    Window::manager->setColor(color);
+
+    SDL_RenderDrawLine(Window::renderer, x1, y1, x2, y2);
+    
     Window::manager->setColor(t);
 }

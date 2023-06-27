@@ -7,3 +7,5 @@ obj/
 Makefile
 
 temp/
+
+peda-session-*.txt

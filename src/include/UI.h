@@ -5,6 +5,7 @@
 
 #include "UIElement.h"
 #include "UILabel.h"
+#include "Header.h"
 
 class UI {
 public:

@@ -1,5 +1,6 @@
 #include "include/Window.h"
 #include "include/Manager.h"
+#include "include/UI.h"
 
 #include <iostream>
 
@@ -7,6 +8,7 @@ std::string Window::title = "Persona";
 SDL_Renderer* Window::renderer = nullptr;
 SDL_Rect Window::screen = {0, 0, 800, 600};
 Manager* Window::manager = nullptr;
+UI* Window::ui = nullptr;
 bool Window::isRunning = false;
 
 Window::Window() : window(nullptr) {}
@@ -15,8 +17,13 @@ Window::~Window() {}
 
 int Window::init() {
     manager = new Manager();
+    ui = new UI();
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        std::cout << SDL_GetError() << std::endl;
+        return -1;
+    }
+    if (TTF_Init() < 0) {
         std::cout << SDL_GetError() << std::endl;
         return -1;
     }
@@ -43,12 +50,11 @@ int Window::init() {
         std::cout << "Error creating renderer!" << std::endl;
         return -2;
     }
+
+    manager->init();
     manager->setColor("background");
 
-    if (TTF_Init() < 0) {
-        std::cout << SDL_GetError() << std::endl;
-        return -1;
-    }
+    ui->init();
 
     isRunning = true;
 
@@ -69,13 +75,13 @@ void Window::handleEvents() {
 }
 
 void Window::update() {
-    // nothing to update
+    ui->update();
 }
 
 void Window::render() {
     SDL_RenderClear(renderer);
 
-    // nothing to render
+    ui->render();
 
     SDL_RenderPresent(renderer);
 }
@@ -84,6 +90,10 @@ void Window::kill() {
     manager->clear();
     delete manager;
     manager = nullptr;
+
+    ui->destroy();
+    delete ui;
+    ui = nullptr;
 
     SDL_DestroyRenderer(renderer);
     renderer = nullptr;

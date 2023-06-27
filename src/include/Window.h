@@ -5,6 +5,7 @@
 #include <string>
 
 class Manager;
+class UI;
 
 class Window {
 public:
@@ -12,6 +13,7 @@ public:
     static SDL_Renderer* renderer;
     static SDL_Rect screen;
     static Manager* manager;
+    static UI* ui;
     static bool isRunning;
 
     Window();

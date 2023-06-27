@@ -1,0 +1,42 @@
+#include "include/UI.h"
+#include "include/Window.h"
+
+UI::UI() {}
+
+UI::~UI() {}
+
+void UI::init() {
+    UILabel* title = new UILabel("Persona", "title");
+    title->place(Window::screen.w - title->width(), 4);
+    add("title", title);
+}
+
+void UI::update() {
+    for (auto e : elements) {
+        e.second->update();
+    }
+}
+
+void UI::render() {
+    for (auto e : elements) {
+        e.second->draw();
+    }
+}
+
+void UI::destroy() {
+    for (auto e : elements) {
+        e.second->destroy();
+    }
+    elements.clear();
+}
+
+void UI::add(std::string tag, UIElement* elt) {
+    remove(tag);
+    elements[tag] = elt;
+}
+
+void UI::remove(std::string tag) {
+    if (elements.count(tag) == 0) return;
+    elements[tag]->destroy();
+    elements.erase(tag);
+}

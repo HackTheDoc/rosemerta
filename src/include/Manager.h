@@ -11,11 +11,16 @@ class Window;
 
 class Manager {
 public:
+    static const int DEFAULT_FONT_SIZE;
+    static const int TITLE_FONT_SIZE;
+    static const int SUBTITLE_FONT_SIZE;
+    
     SDL_Event event;
 
     Manager();
     ~Manager();
 
+    void init();
     void clear();
 
     void setColor(std::string tag);

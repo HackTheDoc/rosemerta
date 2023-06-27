@@ -12,7 +12,10 @@ int main() {
     Uint32 frameStart;
     int frameTime;
 
-    if (window.init() != 0) return -1;
+    if (window.init() != 0) {
+        window.kill();
+        return -1;
+    }
 
     while (Window::isRunning) {
         frameStart = SDL_GetTicks();

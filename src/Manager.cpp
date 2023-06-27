@@ -1,18 +1,27 @@
 #include "include/Manager.h"
 #include "include/Window.h"
 
-Manager::Manager() {
-    // colors
-    color["black"]      = {  0,   0,   0, 255};
-    color["background"] = {204, 255, 204, 255};
+#include <iostream>
 
-    // fonts
-    font["default"]     = TTF_OpenFont("../assets/fonts/Oxanium-Regular.ttf", 16);
-    font["title"]       = TTF_OpenFont("../assets/fonts/Oxanium-Bold.ttf", 64);
-    font["subtitle"]    = TTF_OpenFont("../assets/fonts/Oxanium-SemiBold.ttf", 32);
-}
+const int Manager::DEFAULT_FONT_SIZE    = 16;
+const int Manager::TITLE_FONT_SIZE      = 64;
+const int Manager::SUBTITLE_FONT_SIZE   = 32;
+
+Manager::Manager() {}
 
 Manager::~Manager() {}
+
+void Manager::init() {
+    // colors
+    color["black"]          = {  0,   0,   0, 255};
+    color["background"]     = {204, 255, 204, 255};
+    color["black purple"]   = {136,   0, 204, 255};
+
+    // fonts
+    font["default"]     = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf", DEFAULT_FONT_SIZE);
+    font["title"]       = TTF_OpenFont("./assets/fonts/Oxanium-Bold.ttf", TITLE_FONT_SIZE);
+    font["subtitle"]    = TTF_OpenFont("./assets/fonts/Oxanium-SemiBold.ttf", SUBTITLE_FONT_SIZE);
+}
 
 void Manager::clear() {
     color.clear();

@@ -2,10 +2,10 @@
 #include "include/Manager.h"
 
 Icon::Icon(std::string iconpath, std::string text, int x, int y) {
-    //icon = TextureManager::LoadTexture(iconpath.c_str());
+    icon = TextureManager::LoadTexture(iconpath.c_str());
     rect.x = x;
     rect.y = y;
-    rect.w = rect.h = 40;
+    rect.w = rect.h = 48;
 
     comment = TextureManager::GenerateText(text.c_str(), "comment");
     SDL_QueryTexture(comment, NULL, NULL, &commentRect.w, &commentRect.h);
@@ -32,9 +32,7 @@ void Icon::update() {
 }
 
 void Icon::draw() {
-    //TextureManager::Draw(icon, nullptr, &rect);
-    TextureManager::DrawFilledRect(&rect, "turquoise");
-    TextureManager::DrawRect(&rect, "black");
+    TextureManager::Draw(icon, nullptr, &rect);
     if (hovering) {
         TextureManager::DrawFilledRect(&commentBorder, "background");
         TextureManager::DrawRect(&commentBorder, "black");

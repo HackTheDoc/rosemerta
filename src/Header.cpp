@@ -30,7 +30,7 @@ void Header::init() {
     i->place((i->width() + 4) * 3 + 4, (rect.h - i->height()) / 2);
     icons.push_back(i);
     
-    i = new Icon("./assets/icons/search.png", "Search");
+    i = new Icon("./assets/icons/settings.png", "Settings");
     i->place((i->width() + 4) * 4 + 4, (rect.h - i->height()) / 2);
     icons.push_back(i);
 }

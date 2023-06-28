@@ -16,6 +16,8 @@ public:
     void getPosition(int* x, int* y);
     int width();
     int height();
+    int x();
+    int y();
 
 protected:
     SDL_Rect rect;

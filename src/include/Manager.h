@@ -6,6 +6,7 @@
 #include <map>
 
 #include "TextureManager.h"
+#include "EventManager.h"
 
 class Window;
 
@@ -16,7 +17,7 @@ public:
     static const int SUBTITLE_FONT_SIZE;
     static const int COMMENTARY_FONT_SIZE;
     
-    SDL_Event event;
+    static EventManager* event;
 
     Manager();
     ~Manager();
@@ -29,8 +30,6 @@ public:
     SDL_Color getColor(std::string tag);
 
     TTF_Font* getFont(std::string tag);
-
-    void handleKeyboardInput();
 
 private:
     std::map<std::string, SDL_Color> color;

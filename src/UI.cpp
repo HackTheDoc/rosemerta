@@ -9,6 +9,9 @@ void UI::init() {
     Header* h = new Header();
     h->init();
     elements["header"] = h;
+
+    IdentityEditorPage* p = new IdentityEditorPage();
+    elements["identity editor"] = p;
 }
 
 void UI::update() {

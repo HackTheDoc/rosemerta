@@ -17,3 +17,11 @@ int UIElement::width() {
 int UIElement::height() {
     return rect.h;
 }
+
+int UIElement::x() {
+    return rect.x;
+}
+
+int UIElement::y() {
+    return rect.y;
+}

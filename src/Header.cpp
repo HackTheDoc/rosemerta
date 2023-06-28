@@ -14,23 +14,23 @@ void Header::init() {
     title = new UILabel("Persona", "title");
     title->place(rect.w - title->width(), 4);
     
-    Icon* i = new Icon("./assets/icons/login.png", "Login/Logout");
+    Icon* i = new Icon("./assets/icons/login.png", "Login/Logout", "log");
     i->place(4, (rect.h - i->height()) / 2);
     icons.push_back(i);
     
-    i = new Icon("./assets/icons/save.png", "Save");
+    i = new Icon("./assets/icons/save.png", "Save", "save");
     i->place((i->width() + 4) * 1 + 4, (rect.h - i->height()) / 2);
     icons.push_back(i);
 
-    i = new Icon("./assets/icons/new-identity.png", "Create New Identity");
+    i = new Icon("./assets/icons/new-identity.png", "Create New Identity", "new identity");
     i->place((i->width() + 4) * 2 + 4, (rect.h - i->height()) / 2);
     icons.push_back(i);
 
-    i = new Icon("./assets/icons/catalog.png", "Open Catalog");
+    i = new Icon("./assets/icons/catalog.png", "Open Catalog", "catalog");
     i->place((i->width() + 4) * 3 + 4, (rect.h - i->height()) / 2);
     icons.push_back(i);
     
-    i = new Icon("./assets/icons/settings.png", "Settings");
+    i = new Icon("./assets/icons/settings.png", "Settings", "options");
     i->place((i->width() + 4) * 4 + 4, (rect.h - i->height()) / 2);
     icons.push_back(i);
 }

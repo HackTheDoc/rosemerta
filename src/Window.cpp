@@ -62,14 +62,14 @@ int Window::init() {
 }
 
 void Window::handleEvents() {
-    SDL_PollEvent(&manager->event);
+    SDL_PollEvent(&Manager::event->e);
 
-    switch (manager->event.type) {
+    switch (Manager::event->e.type) {
     case SDL_QUIT:
         isRunning = false;
         break;
     default:
-        manager->handleKeyboardInput();
+        Manager::event->handleKeyboardInput();
         break;
     }
 }

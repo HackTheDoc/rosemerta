@@ -4,8 +4,8 @@
 #include <map>
 
 #include "UIElement.h"
-#include "UILabel.h"
 #include "Header.h"
+#include "IdentityEditorPage.h"
 
 class UI {
 public:

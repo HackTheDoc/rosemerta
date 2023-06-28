@@ -1,16 +1,20 @@
 #include "include/Manager.h"
 #include "include/Window.h"
 
-const int Manager::DEFAULT_FONT_SIZE    = 16;
+const int Manager::DEFAULT_FONT_SIZE    = 32;
 const int Manager::TITLE_FONT_SIZE      = 64;
 const int Manager::SUBTITLE_FONT_SIZE   = 32;
 const int Manager::COMMENTARY_FONT_SIZE = 16;
+
+EventManager* Manager::event = nullptr;
 
 Manager::Manager() {}
 
 Manager::~Manager() {}
 
 void Manager::init() {
+    event = new EventManager();
+
     // colors
     color["black"]          = {  0,   0,   0, 255};
     color["white"]          = {255, 255, 255, 255};
@@ -19,6 +23,8 @@ void Manager::init() {
     color["blue"]           = {  0,   0, 255, 255};
     color["pink"]           = {230,   0, 230, 255};
     color["turquoise"]      = {  0, 204, 204, 255};
+    color["gray"]           = {127, 127, 127, 255};
+    color["light gray"]     = {192, 192, 192, 255};
     color["background"]     = {229, 252, 245, 255}; // mint green
     color["border"]         = {117,  13,  55, 255}; // claret
     color["font"]           = { 33,   1,  36, 255}; // dark purple
@@ -31,6 +37,9 @@ void Manager::init() {
 }
 
 void Manager::clear() {
+    delete event;
+    event = nullptr;
+    
     color.clear();
 
     for (auto f : font) {
@@ -55,24 +64,4 @@ SDL_Color Manager::getColor(std::string tag) {
 TTF_Font* Manager::getFont(std::string tag) {
     if (font.count(tag) <= 0) return nullptr;
     return font[tag];
-}
-
-void Manager::handleKeyboardInput() {
-    if (event.type == SDL_KEYDOWN) {
-        switch (event.key.keysym.sym) {
-        case SDLK_q:
-            if (SDL_GetModState() & KMOD_CTRL)
-                Window::isRunning = false;
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (event.type == SDL_KEYUP) {
-        switch (event.key.keysym.sym) {
-        default:
-            break;
-        }
-    }
 }

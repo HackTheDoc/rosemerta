@@ -1,7 +1,7 @@
 #include "include/Icon.h"
 #include "include/Manager.h"
 
-Icon::Icon(std::string iconpath, std::string text, int x, int y) {
+Icon::Icon(std::string iconpath, std::string text, std::string action, int x, int y) {
     icon = TextureManager::LoadTexture(iconpath.c_str());
     rect.x = x;
     rect.y = y;
@@ -11,6 +11,8 @@ Icon::Icon(std::string iconpath, std::string text, int x, int y) {
     SDL_QueryTexture(comment, NULL, NULL, &commentRect.w, &commentRect.h);
     commentBorder.w = commentRect.w + 4;
     commentBorder.h = commentRect.h + 2;
+
+    this->action = action;
 }
 
 Icon::~Icon() {}
@@ -28,6 +30,10 @@ void Icon::update() {
         hovering = true;
     } else {
         hovering = false;
+    }
+
+    if (hovering && Manager::event->mouseClickLeft()) {
+        Manager::event->handleClick(action);
     }
 }
 

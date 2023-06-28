@@ -3,6 +3,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <string>
+#include <vector>
 #include <map>
 
 #include "TextureManager.h"
@@ -18,6 +19,7 @@ public:
     static const int COMMENTARY_FONT_SIZE;
     
     static EventManager* event;
+    static std::string database;
 
     Manager();
     ~Manager();

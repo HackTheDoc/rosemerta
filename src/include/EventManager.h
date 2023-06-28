@@ -18,6 +18,9 @@ public:
 
     SDL_Event e;
     
+    EventManager();
+    ~EventManager();
+
     void handleClick(std::string event);
 
     void handleKeyboardInput();
@@ -30,5 +33,5 @@ public:
     bool mouseClickLeftIn(const SDL_Rect& rect);
 
 private:
-    static const std::map<std::string, EventID> id;
+    static std::map<std::string, EventID> id;
 };

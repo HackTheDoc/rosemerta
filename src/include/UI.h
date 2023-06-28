@@ -5,6 +5,9 @@
 
 #include "UIElement.h"
 #include "Header.h"
+
+#include "Page.h"
+#include "RegisterPage.h"
 #include "IdentityEditorPage.h"
 
 class UI {
@@ -20,6 +23,10 @@ public:
     void add(std::string tag, UIElement* elt);
     void remove(std::string tag);
 
+    void openPage(Page::Type p);
+    void validPage();
+
 private:
     std::map<std::string, UIElement*> elements;
+    Page* currentPage;
 };

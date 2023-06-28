@@ -2,18 +2,19 @@
 
 #include <SDL2/SDL.h>
 
-#include "UIElement.h"
+#include "Page.h"
 #include "UIButton.h"
 #include "InputField.h"
 #include "ImageDisplayer.h"
 
-class IdentityEditorPage : public UIElement {
+class IdentityEditorPage : public Page {
 public:
     IdentityEditorPage();
     ~IdentityEditorPage();
 
+    void init() override;
     void update() override;
-    void draw() override;
+    void render() override;
     void destroy() override;
 
 private:

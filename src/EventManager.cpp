@@ -1,26 +1,42 @@
 #include "include/EventManager.h"
 #include "include/Window.h"
+#include "include/UI.h"
 
-const std::map<std::string, EventManager::EventID> EventManager::id = {
+#include <iostream>
+
+std::map<std::string, EventManager::EventID> EventManager::id = {
     {"log"          , EventID::LOG                  },
     {"register"     , EventID::REGISTER             },
+    {"save"         , EventID::SAVE                 },
     {"new identity" , EventID::CREATE_NEW_IDENTITY  },
     {"catalog"      , EventID::CATALOG              },
     {"options"      , EventID::OPTIONS              },
     {"save identity", EventID::SAVE_IDENTITY        }
 };
 
+EventManager::EventManager() {}
+
+EventManager::~EventManager() {}
+
 void EventManager::handleClick(std::string event) {
-    switch(id.at(event)) {
+    switch(id[event]) {
     case EventID::LOG:
+        std::cout << "login..." << std::endl;
         break;
     case EventID::REGISTER:
+        Window::ui->validPage();
+        break;
+    case EventID::SAVE:
+        std::cout << "saving..." << std::endl;
         break;
     case EventID::CREATE_NEW_IDENTITY:
+        std::cout << "create new identity..." << std::endl;
         break;
     case EventID::CATALOG:
+        std::cout << "catalog..." << std::endl;
         break;
     case EventID::OPTIONS:
+        std::cout << "options..." << std::endl;
         break;
     default:
         break;

@@ -1,7 +1,7 @@
 #include "include/UI.h"
 #include "include/Window.h"
 
-UI::UI() {}
+UI::UI() : currentPage(nullptr) {}
 
 UI::~UI() {}
 
@@ -10,23 +10,25 @@ void UI::init() {
     h->init();
     elements["header"] = h;
 
-    IdentityEditorPage* p = new IdentityEditorPage();
-    elements["identity editor"] = p;
+    openPage(Page::Type::REGISTER);
 }
 
 void UI::update() {
+    currentPage->update();
     for (auto e : elements) {
         e.second->update();
     }
 }
 
 void UI::render() {
+    currentPage->render();
     for (auto e : elements) {
         e.second->draw();
     }
 }
 
 void UI::destroy() {
+    currentPage->destroy();
     for (auto e : elements) {
         e.second->destroy();
     }
@@ -42,4 +44,24 @@ void UI::remove(std::string tag) {
     if (elements.count(tag) == 0) return;
     elements[tag]->destroy();
     elements.erase(tag);
+}
+
+void UI::openPage(Page::Type p) {
+    if (currentPage != nullptr) currentPage->destroy();
+
+    switch (p) {
+    case Page::Type::REGISTER:
+        currentPage = new RegisterPage();
+        break;
+    case Page::Type::BLANK:
+    default:
+        currentPage = new Page();
+        break;
+    }
+
+    currentPage->init();
+}
+
+void UI::validPage() {
+    currentPage->valid();
 }

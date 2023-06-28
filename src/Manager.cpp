@@ -3,10 +3,11 @@
 
 const int Manager::DEFAULT_FONT_SIZE    = 32;
 const int Manager::TITLE_FONT_SIZE      = 64;
-const int Manager::SUBTITLE_FONT_SIZE   = 32;
+const int Manager::SUBTITLE_FONT_SIZE   = 48;
 const int Manager::COMMENTARY_FONT_SIZE = 16;
 
 EventManager* Manager::event = nullptr;
+std::string Manager::database = "";
 
 Manager::Manager() {}
 

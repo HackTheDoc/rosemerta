@@ -10,6 +10,8 @@ UIButton::UIButton(std::string text, std::string action) {
     rect.x = rect.y = 0;
     rect.w = textRect.w + 4;
     rect.h = textRect.h + 4;
+
+    this->action = action;
 }
 
 UIButton::UIButton(std::string text, std::string action, int w, int h) {
@@ -21,6 +23,8 @@ UIButton::UIButton(std::string text, std::string action, int w, int h) {
     rect.x = rect.y = 0;
     rect.w = w;
     rect.h = h;
+
+    this->action = action;
 }
 
 UIButton::~UIButton() {}

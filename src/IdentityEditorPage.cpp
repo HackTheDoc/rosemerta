@@ -6,7 +6,11 @@
 
 IdentityEditorPage::IdentityEditorPage() {
     rect = {0, 64, Window::screen.w, Window::screen.h - 64};
+}
 
+IdentityEditorPage::~IdentityEditorPage() {}
+
+void IdentityEditorPage::init() {
     profilePicture = new ImageDisplayer(".app/assets/pictures/unknown.png", 160, 160);
     profilePicture->place(rect.x + 32, rect.y + 32);
 
@@ -29,8 +33,6 @@ IdentityEditorPage::IdentityEditorPage() {
     );
 }
 
-IdentityEditorPage::~IdentityEditorPage() {}
-
 void IdentityEditorPage::update() {
     usernameInput->update();
     ageInput->update();
@@ -48,7 +50,7 @@ void IdentityEditorPage::update() {
     }
 }
 
-void IdentityEditorPage::draw() {
+void IdentityEditorPage::render() {
     profilePicture->draw();
     usernameInput->draw();
     ageInput->draw();

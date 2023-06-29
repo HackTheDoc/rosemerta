@@ -48,9 +48,32 @@ void LoginPage::init() {
         border.x + (border.w - link->width()) / 2,
         button->y() + button->height() + 8
     );
+
+    // log off if already logged in
+    Manager::database = "unknown";
+    Manager::user = std::make_pair("unknown", "unknown");
+    Window::loggedIn = false;
 }
 
 void LoginPage::update() {
+    if (Manager::event->enterKeyPressed()) {
+        button->use();
+        return;
+    }
+    
+    if (Manager::event->tabKeyPressed()) {
+        if (usernameInput->selected()) {
+            usernameInput->unselect();
+            passwordInput->select();
+        }
+        else if (passwordInput->selected()) {
+            passwordInput->unselect();
+            usernameInput->select();
+        } else {
+            usernameInput->select();
+        }
+    }
+
     usernameInput->update();
     passwordInput->update();
     link->update();
@@ -100,7 +123,10 @@ void LoginPage::valid() {
 
     // saving user login data
     Manager::database = path + "/database.db";
+    Manager::user = std::make_pair(usernameInput->input, passwordInput->input);
+    Window::loggedIn = true;
 
     // log in
+    //Manager::Decrypt("./app/users/"+Manager::user.first, Manager::user.second);
     Window::ui->openPage(Page::Type::BLANK);
 }

@@ -14,6 +14,8 @@ public:
     void draw() override;
     void destroy() override;
 
+    void use();
+
 private:
     SDL_Texture* text;
     SDL_Rect textRect;

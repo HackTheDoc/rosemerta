@@ -41,7 +41,7 @@ void UIButton::update() {
     }
 
     if (hovered && Manager::event->mouseClickLeft()) {
-        Manager::event->handleClick(action);
+        use();
     }
 }
 
@@ -59,4 +59,8 @@ void UIButton::draw() {
 void UIButton::destroy() {
     SDL_DestroyTexture(text);
     text = nullptr;
+}
+
+void UIButton::use() {
+    Manager::event->handleClick(action);
 }

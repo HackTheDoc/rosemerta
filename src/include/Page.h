@@ -7,7 +7,8 @@ public:
     enum Type {
         BLANK,
         LOGIN,
-        REGISTER
+        REGISTER,
+        IDENTITY_EDITOR
     };
 
     Page() = default;

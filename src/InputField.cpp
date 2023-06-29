@@ -24,6 +24,9 @@ InputField::InputField(const char* placeholder) {
 }
 
 InputField::InputField(const char* placeholder, int w, int h) {
+    rect.w = w;
+    rect.h = h;
+
     this->placeholder = TextureManager::GenerateText(
         placeholder,
         "default",
@@ -34,9 +37,6 @@ InputField::InputField(const char* placeholder, int w, int h) {
 
     text = nullptr;
 
-    rect.w = field.w + 4;
-    rect.h = field.h + 4;
-
     actived = false;
 
     textRect = {0,0,0,0};
@@ -46,9 +46,9 @@ InputField::~InputField() {}
 
 void InputField::update() {
     if (input.empty()) {
-        textRect.x = field.x;
-        textRect.y = field.y;
         SDL_QueryTexture(placeholder, NULL, NULL, &textRect.w, &textRect.h);
+        textRect.x = field.x;
+        textRect.y = field.y + (field.h - textRect.h) / 2 + 4;
     }
 
     if (Manager::event->mouseClickLeftIn(rect))
@@ -75,7 +75,7 @@ void InputField::update() {
             1024
         );
         SDL_QueryTexture(text, NULL, NULL, &textRect.w, &textRect.h);
-        textRect.y = 1;
+        textRect.y = (field.h - textRect.h) / 2 + 4;
         textRect.x = 0;
         if (textRect.w >= field.w) textRect.x -= textRect.w - field.w;
     }
@@ -124,5 +124,17 @@ void InputField::destroy() {
 void InputField::place(int x, int y) {
     UIElement::place(x,y);
     field.x = x+2;
-    field.y = y+2;
+    field.y = y + (rect.h - field.h) / 2;
+}
+
+bool InputField::selected() {
+    return actived;
+}
+
+void InputField::select() {
+    actived = true;
+}
+
+void InputField::unselect() {
+    actived = false;
 }

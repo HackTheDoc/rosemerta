@@ -26,6 +26,12 @@ void IdentityEditorPage::init() {
         usernameInput->y() + usernameInput->height() + 12
     );
 
+    birthdayInput = new DateInput(256, 48);
+    birthdayInput->place(
+        rect.w - birthdayInput->width() - 32,
+        ageInput->y()
+    ); 
+
     saveButton = new UIButton("Save", "save identity", 128, 48);
     saveButton->place(
         rect.x + rect.w - saveButton->width() - 32,
@@ -34,10 +40,6 @@ void IdentityEditorPage::init() {
 }
 
 void IdentityEditorPage::update() {
-    usernameInput->update();
-    ageInput->update();
-    saveButton->update();
-
     if (Manager::event->enterKeyPressed()) {
         if (!usernameInput->input.empty()) {
             std::cout << usernameInput->input << std::endl;
@@ -47,13 +49,46 @@ void IdentityEditorPage::update() {
             std::cout << ageInput->input << std::endl;
             ageInput->input = "";
         }
+        std::cout << birthdayInput->getDate() << std::endl;
+        birthdayInput->clear();
     }
+
+    if (Manager::event->tabKeyPressed()) {
+        if (usernameInput->selected()) {
+            usernameInput->unselect();
+            ageInput->select();
+        }
+        else if (ageInput->selected()) {
+            ageInput->unselect();
+            birthdayInput->selectDay();
+        }
+        else if (birthdayInput->selectedDay()) {
+            birthdayInput->unselectDay();
+            birthdayInput->selectMonth();
+        }
+        else if (birthdayInput->selectedMonth()) {
+            birthdayInput->unselectMonth();
+            birthdayInput->selectYear();
+        }
+        else if (birthdayInput->selectedYear()) {
+            birthdayInput->unselectYear();
+            usernameInput->select();
+        }
+        else
+            usernameInput->select();
+    }
+
+    usernameInput->update();
+    ageInput->update();
+    birthdayInput->update();
+    saveButton->update();
 }
 
 void IdentityEditorPage::render() {
     profilePicture->draw();
     usernameInput->draw();
     ageInput->draw();
+    birthdayInput->draw();
     saveButton->draw();
 }
 
@@ -61,5 +96,6 @@ void IdentityEditorPage::destroy() {
     profilePicture->destroy();
     usernameInput->destroy();
     ageInput->destroy();
+    birthdayInput->destroy();
     saveButton->destroy();
 }

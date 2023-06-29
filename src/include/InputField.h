@@ -19,6 +19,10 @@ public:
 
     void place(int x, int y);
 
+    bool selected();
+    void select();
+    void unselect();
+
 private:
     static SDL_Rect cursor;
     

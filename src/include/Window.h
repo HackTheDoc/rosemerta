@@ -15,6 +15,7 @@ public:
     static Manager* manager;
     static UI* ui;
     static bool isRunning;
+    static bool loggedIn;
 
     Window();
     ~Window();

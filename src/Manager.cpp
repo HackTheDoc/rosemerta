@@ -1,6 +1,10 @@
 #include "include/Manager.h"
 #include "include/Window.h"
 
+#include <iostream>
+#include <fstream>
+#include <filesystem>
+
 const int Manager::DEFAULT_FONT_SIZE    = 32;
 const int Manager::TITLE_FONT_SIZE      = 64;
 const int Manager::SUBTITLE_FONT_SIZE   = 48;
@@ -8,6 +12,8 @@ const int Manager::COMMENTARY_FONT_SIZE = 16;
 
 EventManager* Manager::event = nullptr;
 std::string Manager::database = "unknown";
+std::pair<std::string, std::string> Manager::user = std::make_pair("unknown", "unknown");
+int Manager::selectedIdentity = -1;
 
 Manager::Manager() {}
 
@@ -32,10 +38,11 @@ void Manager::init() {
     color["font"]           = { 33,   1,  36, 255}; // dark purple
 
     // fonts
-    font["default"]         = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf", DEFAULT_FONT_SIZE);
-    font["title"]           = TTF_OpenFont("./assets/fonts/Oxanium-Bold.ttf", TITLE_FONT_SIZE);
+    font["default"]         = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf" , DEFAULT_FONT_SIZE);
+    font["big"]             = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf" , SUBTITLE_FONT_SIZE);
+    font["title"]           = TTF_OpenFont("./assets/fonts/Oxanium-Bold.ttf"    , TITLE_FONT_SIZE);
     font["subtitle"]        = TTF_OpenFont("./assets/fonts/Oxanium-SemiBold.ttf", SUBTITLE_FONT_SIZE);
-    font["comment"]         = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf", COMMENTARY_FONT_SIZE);
+    font["comment"]         = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf" , COMMENTARY_FONT_SIZE);
 }
 
 void Manager::clear() {
@@ -66,4 +73,30 @@ SDL_Color Manager::getColor(std::string tag) {
 TTF_Font* Manager::getFont(std::string tag) {
     if (font.count(tag) <= 0) return nullptr;
     return font[tag];
+}
+
+void Manager::Encrypt(const std::string& path, const std::string& key) {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
+        if (entry.is_regular_file()) {
+            std::string filePath = entry.path().string();
+            EncryptFile(filePath, key);
+        }
+    }
+}
+
+void Manager::EncryptFile(const std::string& path, const std::string& key) {
+    
+}
+
+void Manager::Decrypt(const std::string& path, const std::string& key) {
+    for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
+        if (entry.is_regular_file()) {
+            std::string filePath = entry.path().string();
+            DecryptFile(filePath, key);
+        }
+    }
+}
+
+void Manager::DecryptFile(const std::string& path, const std::string& key) {
+    
 }

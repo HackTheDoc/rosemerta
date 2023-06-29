@@ -6,6 +6,7 @@
 #include "UIButton.h"
 #include "InputField.h"
 #include "ImageDisplayer.h"
+#include "DateInput.h"
 
 class IdentityEditorPage : public Page {
 public:
@@ -21,5 +22,6 @@ private:
     ImageDisplayer* profilePicture;
     InputField* usernameInput;
     InputField* ageInput;
+    DateInput* birthdayInput;
     UIButton* saveButton;
 };

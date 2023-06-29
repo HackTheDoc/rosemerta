@@ -27,6 +27,7 @@ public:
     void handleKeyboardInput();
 
     bool enterKeyPressed();
+    bool tabKeyPressed();
 
     bool mouseClickLeft();
     bool mouseClickRight();

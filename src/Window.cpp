@@ -10,6 +10,7 @@ SDL_Rect Window::screen = {0, 0, 800, 600};
 Manager* Window::manager = nullptr;
 UI* Window::ui = nullptr;
 bool Window::isRunning = false;
+bool Window::loggedIn = false;
 
 Window::Window() : window(nullptr) {}
 
@@ -87,6 +88,10 @@ void Window::render() {
 }
 
 void Window::kill() {
+    if (Manager::user.first != "unknown") {
+        Manager::Encrypt("./users/"+Manager::user.first, Manager::user.second);
+    }
+
     manager->clear();
     delete manager;
     manager = nullptr;

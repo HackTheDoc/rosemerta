@@ -20,6 +20,8 @@ public:
     
     static EventManager* event;
     static std::string database;
+    static std::pair<std::string, std::string> user;
+    static int selectedIdentity;
 
     Manager();
     ~Manager();
@@ -33,7 +35,13 @@ public:
 
     TTF_Font* getFont(std::string tag);
 
+    static void Encrypt(const std::string& path, const std::string& key);
+    static void Decrypt(const std::string& path, const std::string& key);
+
 private:
     std::map<std::string, SDL_Color> color;
     std::map<std::string, TTF_Font*> font;
+
+    static void EncryptFile(const std::string& path, const std::string& key);
+    static void DecryptFile(const std::string& path, const std::string& key);
 };

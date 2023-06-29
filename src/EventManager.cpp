@@ -37,7 +37,7 @@ void EventManager::handleClick(std::string event) {
         std::cout << "saving..." << std::endl;
         break;
     case EventID::CREATE_NEW_IDENTITY:
-        std::cout << "create new identity..." << std::endl;
+        Window::ui->openPage(Page::Type::IDENTITY_EDITOR);
         break;
     case EventID::CATALOG:
         std::cout << "catalog..." << std::endl;
@@ -64,6 +64,11 @@ void EventManager::handleKeyboardInput() {
 
     if (e.type == SDL_KEYUP) {
         switch (e.key.keysym.sym) {
+        case SDLK_n:
+            if (SDL_GetModState() & KMOD_CTRL) {
+                Manager::selectedIdentity = -1;
+                Window::ui->openPage(Page::Type::IDENTITY_EDITOR);
+            }
         default:
             break;
         }
@@ -71,7 +76,11 @@ void EventManager::handleKeyboardInput() {
 }
 
 bool EventManager::enterKeyPressed() {
-    return e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_RETURN;
+    return e.type == SDL_KEYUP && (e.key.keysym.sym == SDLK_RETURN || e.key.keysym.sym == SDLK_RETURN2);
+}
+
+bool EventManager::tabKeyPressed() {
+    return e.type == SDL_KEYUP && e.key.keysym.sym == SDLK_TAB;
 }
 
 bool EventManager::mouseClickLeft() {

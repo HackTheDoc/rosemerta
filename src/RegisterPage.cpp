@@ -50,9 +50,32 @@ void RegisterPage::init() {
         confirmPasswordInput->y() + confirmPasswordInput->height() + 16
     );
     
+    Window::loggedIn = false;
 }
 
 void RegisterPage::update() {
+    if (Manager::event->enterKeyPressed()) {
+        button->use();
+        return;
+    }
+    
+    if (Manager::event->tabKeyPressed()) {
+        if (usernameInput->selected()) {
+            usernameInput->unselect();
+            passwordInput->select();
+        }
+        else if (passwordInput->selected()) {
+            passwordInput->unselect();
+            confirmPasswordInput->select();
+        }
+        else if (confirmPasswordInput->selected()) {
+            confirmPasswordInput->unselect();
+            usernameInput->select();
+        }
+        else
+            usernameInput->select();
+    }
+
     usernameInput->update();
     passwordInput->update();
     confirmPasswordInput->update();
@@ -127,5 +150,7 @@ void RegisterPage::valid() {
     sqlite3_close(db);
 
     // log in
+    Manager::user = std::make_pair(usernameInput->input, passwordInput->input);
+    Window::loggedIn = true;
     Window::ui->openPage(Page::Type::BLANK);
 }

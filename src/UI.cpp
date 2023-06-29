@@ -47,6 +47,20 @@ void UI::remove(std::string tag) {
 }
 
 void UI::openPage(Page::Type p) {
+    if (!Window::loggedIn) {
+        if (p == Page::Type::LOGIN) {
+            if (currentPage != nullptr) currentPage->destroy();
+            currentPage = new LoginPage();
+            currentPage->init();
+        }
+        else if (p == Page::Type::REGISTER) {
+            if (currentPage != nullptr) currentPage->destroy();
+            currentPage = new RegisterPage();
+            currentPage->init();
+        }
+        return;
+    }
+
     if (currentPage != nullptr) currentPage->destroy();
 
     switch (p) {
@@ -55,6 +69,9 @@ void UI::openPage(Page::Type p) {
         break;
     case Page::Type::REGISTER:
         currentPage = new RegisterPage();
+        break;
+    case Page::Type::IDENTITY_EDITOR:
+        currentPage = new IdentityEditorPage();
         break;
     case Page::Type::BLANK:
     default:

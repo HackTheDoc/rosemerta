@@ -10,7 +10,7 @@ void UI::init() {
     h->init();
     elements["header"] = h;
 
-    openPage(Page::Type::REGISTER);
+    openPage(Page::Type::LOGIN);
 }
 
 void UI::update() {
@@ -50,6 +50,9 @@ void UI::openPage(Page::Type p) {
     if (currentPage != nullptr) currentPage->destroy();
 
     switch (p) {
+    case Page::Type::LOGIN:
+        currentPage = new LoginPage();
+        break;
     case Page::Type::REGISTER:
         currentPage = new RegisterPage();
         break;

@@ -1,17 +1,19 @@
 #include "include/EventManager.h"
 #include "include/Window.h"
+#include "include/Manager.h"
 #include "include/UI.h"
 
 #include <iostream>
 
 std::map<std::string, EventManager::EventID> EventManager::id = {
-    {"log"          , EventID::LOG                  },
-    {"register"     , EventID::REGISTER             },
-    {"save"         , EventID::SAVE                 },
-    {"new identity" , EventID::CREATE_NEW_IDENTITY  },
-    {"catalog"      , EventID::CATALOG              },
-    {"options"      , EventID::OPTIONS              },
-    {"save identity", EventID::SAVE_IDENTITY        }
+    {"valid page"           , EventID::VALID                },
+    {"log"                  , EventID::LOG                  },
+    {"open register page"   , EventID::OPEN_REGISTER_PAGE   },
+    {"save"                 , EventID::SAVE                 },
+    {"new identity"         , EventID::CREATE_NEW_IDENTITY  },
+    {"catalog"              , EventID::CATALOG              },
+    {"options"              , EventID::OPTIONS              },
+    {"save identity"        , EventID::SAVE_IDENTITY        }
 };
 
 EventManager::EventManager() {}
@@ -20,11 +22,16 @@ EventManager::~EventManager() {}
 
 void EventManager::handleClick(std::string event) {
     switch(id[event]) {
-    case EventID::LOG:
-        std::cout << "login..." << std::endl;
-        break;
-    case EventID::REGISTER:
+    case EventID::VALID:
         Window::ui->validPage();
+        break;
+    case EventID::LOG:
+        if (Manager::database != "unknown")
+            Manager::database = "unknown";
+        Window::ui->openPage(Page::Type::LOGIN);
+        break;
+    case EventID::OPEN_REGISTER_PAGE:
+        Window::ui->openPage(Page::Type::REGISTER);
         break;
     case EventID::SAVE:
         std::cout << "saving..." << std::endl;

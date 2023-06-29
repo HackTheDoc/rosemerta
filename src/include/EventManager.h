@@ -7,8 +7,9 @@
 class EventManager {
 public:
     enum EventID {
+        VALID,
         LOG,
-        REGISTER,
+        OPEN_REGISTER_PAGE,
         SAVE, // is it really usefull ?
         CREATE_NEW_IDENTITY,
         CATALOG,

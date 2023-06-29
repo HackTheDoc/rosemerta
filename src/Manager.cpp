@@ -7,7 +7,7 @@ const int Manager::SUBTITLE_FONT_SIZE   = 48;
 const int Manager::COMMENTARY_FONT_SIZE = 16;
 
 EventManager* Manager::event = nullptr;
-std::string Manager::database = "";
+std::string Manager::database = "unknown";
 
 Manager::Manager() {}
 
@@ -21,7 +21,8 @@ void Manager::init() {
     color["white"]          = {255, 255, 255, 255};
     color["red"]            = {255,   0,   0, 255};
     color["green"]          = {  0, 255,   0, 255};
-    color["blue"]           = {  0,   0, 255, 255};
+    color["blue"]           = {128, 191, 255, 255};
+    color["dark blue"]      = { 26, 140, 255, 255};
     color["pink"]           = {230,   0, 230, 255};
     color["turquoise"]      = {  0, 204, 204, 255};
     color["gray"]           = {127, 127, 127, 255};

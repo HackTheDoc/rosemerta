@@ -13,6 +13,8 @@ InputField::InputField(const char* placeholder) {
     );
     SDL_QueryTexture(this->placeholder, NULL, NULL, &field.w, &field.h);
 
+    text = nullptr;
+
     rect.w = field.w + 4;
     rect.h = field.h + 4;
 
@@ -29,6 +31,8 @@ InputField::InputField(const char* placeholder, int w, int h) {
         "light gray"
     );
     field = {0, 0, w-4, h-4};
+
+    text = nullptr;
 
     rect.w = field.w + 4;
     rect.h = field.h + 4;
@@ -112,6 +116,7 @@ void InputField::destroy() {
     SDL_DestroyTexture(placeholder);
     placeholder = nullptr;
 
+    if (text == nullptr) return;
     SDL_DestroyTexture(text);
     text = nullptr;
 }

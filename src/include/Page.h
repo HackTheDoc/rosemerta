@@ -6,6 +6,7 @@ class Page {
 public:
     enum Type {
         BLANK,
+        LOGIN,
         REGISTER
     };
 

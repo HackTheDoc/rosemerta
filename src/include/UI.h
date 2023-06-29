@@ -7,6 +7,7 @@
 #include "Header.h"
 
 #include "Page.h"
+#include "LoginPage.h"
 #include "RegisterPage.h"
 #include "IdentityEditorPage.h"
 

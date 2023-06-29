@@ -44,7 +44,7 @@ void RegisterPage::init() {
         passwordInput->y() + passwordInput->height() + 16
     );
     
-    button = new UIButton("Register", "register", 128, 48);
+    button = new UIButton("Register", "valid page", 128, 48);
     button->place(
         border.x + (border.w - button->width()) / 2,
         confirmPasswordInput->y() + confirmPasswordInput->height() + 16

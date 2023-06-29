@@ -18,7 +18,7 @@ UIButton::UIButton(std::string text, std::string action, int w, int h) {
     this->text = TextureManager::GenerateText(text.c_str(), "default", w);
     SDL_QueryTexture(this->text, NULL, NULL, &textRect.w, &textRect.h);
     textRect.x = (w - textRect.w) / 2;
-    textRect.y = (h - textRect.h) / 2;
+    textRect.y = (h - textRect.h) / 2 + 4;
 
     rect.x = rect.y = 0;
     rect.w = w;

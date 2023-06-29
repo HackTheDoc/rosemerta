@@ -87,7 +87,7 @@ void LoginPage::render() {
     passwordInput->draw();
     link->draw();
     button->draw();
-    TextureManager::DrawRect(&border, "border");
+    TextureManager::DrawRect(&border, "border", 2);
 }
 
 void LoginPage::destroy() {

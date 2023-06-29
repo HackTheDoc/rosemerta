@@ -64,6 +64,11 @@ void EventManager::handleKeyboardInput() {
 
     if (e.type == SDL_KEYUP) {
         switch (e.key.keysym.sym) {
+        case SDLK_r:
+            if (SDL_GetModState() & KMOD_CTRL) {
+                Manager::selectedIdentity = -1;
+                Window::ui->openPage(Page::Type::REGISTER);
+            }
         case SDLK_n:
             if (SDL_GetModState() & KMOD_CTRL) {
                 Manager::selectedIdentity = -1;

@@ -75,7 +75,7 @@ void UI::openPage(Page::Type p) {
         break;
     case Page::Type::BLANK:
     default:
-        currentPage = new Page();
+        currentPage = new BlankPage();
         break;
     }
 

@@ -2,6 +2,8 @@
 #include "include/Window.h"
 #include "include/Manager.h"
 
+#include <vector>
+
 SDL_Texture* TextureManager::LoadTexture(const char* filepath) {
     SDL_Surface* s = IMG_Load(filepath);
 
@@ -33,15 +35,25 @@ void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_Rect* dest) {
     SDL_RenderCopy(Window::renderer, texture, src, dest);
 }
 
-void TextureManager::DrawRect(SDL_Rect* rect, std::string color) {
+void TextureManager::DrawRect(SDL_Rect* rect, std::string color, int borderWidth) {
+    std::vector<SDL_Rect> buffer;
+    for (int i = 1; i < borderWidth; i++) {
+        SDL_Rect r = {rect->x-i, rect->y-i, rect->w+(2*i), rect->h+(2*i)};
+        buffer.push_back(r);
+    }
+
     SDL_Color t;
     SDL_GetRenderDrawColor(Window::renderer, &t.r, &t.g, &t.b, &t.a);
     
     Window::manager->setColor(color);
 
     SDL_RenderDrawRect(Window::renderer, rect);
+    for (auto r : buffer)
+        SDL_RenderDrawRect(Window::renderer, &r);
 
     Window::manager->setColor(t);
+
+    buffer.clear();
 }
 
 void TextureManager::DrawFilledRect(SDL_Rect* rect, std::string color) {

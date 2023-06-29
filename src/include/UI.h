@@ -6,10 +6,7 @@
 #include "UIElement.h"
 #include "Header.h"
 
-#include "Page.h"
-#include "LoginPage.h"
-#include "RegisterPage.h"
-#include "IdentityEditorPage.h"
+#include "Pages.h"
 
 class UI {
 public:

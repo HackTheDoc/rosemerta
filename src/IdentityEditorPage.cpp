@@ -26,6 +26,12 @@ void IdentityEditorPage::init() {
         usernameInput->y() + usernameInput->height() + 12
     );
 
+    statusSelector = new StatusSelector(192, 48);
+    statusSelector->place(
+        rect.w - statusSelector->width() - 32,
+        usernameInput->y()
+    );
+
     birthdayInput = new DateInput(256, 48);
     birthdayInput->place(
         rect.w - birthdayInput->width() - 32,
@@ -80,6 +86,7 @@ void IdentityEditorPage::update() {
 
     usernameInput->update();
     ageInput->update();
+    statusSelector->update();
     birthdayInput->update();
     saveButton->update();
 }
@@ -88,6 +95,7 @@ void IdentityEditorPage::render() {
     profilePicture->draw();
     usernameInput->draw();
     ageInput->draw();
+    statusSelector->draw();
     birthdayInput->draw();
     saveButton->draw();
 }
@@ -96,6 +104,7 @@ void IdentityEditorPage::destroy() {
     profilePicture->destroy();
     usernameInput->destroy();
     ageInput->destroy();
+    statusSelector->destroy();
     birthdayInput->destroy();
     saveButton->destroy();
 }

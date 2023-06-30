@@ -1,6 +1,7 @@
 #include "include/LoginPage.h"
 #include "include/Window.h"
 #include "include/Manager.h"
+#include "include/Database.h"
 #include "include/UI.h"
 
 #include <regex>
@@ -122,7 +123,7 @@ void LoginPage::valid() {
     }
 
     // saving user login data
-    Manager::database = path + "/database.db";
+    Database::SetPath(path+"/database.db");
     Manager::user = std::make_pair(usernameInput->input, passwordInput->input);
     Window::loggedIn = true;
 

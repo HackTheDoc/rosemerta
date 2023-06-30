@@ -1,11 +1,11 @@
 #include "include/RegisterPage.h"
 #include "include/Window.h"
 #include "include/Manager.h"
+#include "include/Database.h"
 #include "include/UI.h"
 
 #include <regex>
 #include <filesystem>
-#include <sqlite3.h>
 #include <iostream>
 
 RegisterPage::RegisterPage() {
@@ -129,25 +129,9 @@ void RegisterPage::valid() {
     // create directories
     std::filesystem::create_directory(path);
     std::filesystem::create_directory(path + "/pictures");
-    Manager::database = path + "/database.db";
+    Database::SetPath(path + "/database.db");
 
-    // Create database
-    sqlite3* db;
-    sqlite3_open(Manager::database.c_str(), &db);
-
-    std::string identityQuery = "CREATE TABLE IF NOT EXISTS \"identity\" (\"id\" INTEGER UNIQUE, \"username\" TEXT,	\"name\" TEXT, \"lastname\"	TEXT, \"age\" INTEGER, \"birthday\"	TEXT, \"status\" INTEGER, \"notes\"	TEXT, PRIMARY KEY(\"id\"));";
-    if (sqlite3_exec(db, identityQuery.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
-        std::cout << sqlite3_errmsg(db) << std::endl;
-        return;
-    }
-
-    std::string contactQuery = "CREATE TABLE IF NOT EXISTS \"contact\" (\"owner\" INTEGER, \"type\" INTEGER, \"detail\" TEXT);";
-    if (sqlite3_exec(db, contactQuery.c_str(), nullptr, nullptr, nullptr) != SQLITE_OK) {
-        std::cout << sqlite3_errmsg(db) << std::endl;
-        return;
-    }
-
-    sqlite3_close(db);
+    Database::Create();
 
     // log in
     Manager::user = std::make_pair(usernameInput->input, passwordInput->input);

@@ -32,6 +32,7 @@ public:
     bool mouseClickLeft();
     bool mouseClickRight();
 
+    bool mouseIn(const SDL_Rect& rect);
     bool mouseClickLeftIn(const SDL_Rect& rect);
 
 private:

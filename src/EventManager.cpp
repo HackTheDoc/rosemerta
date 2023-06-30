@@ -96,9 +96,7 @@ bool EventManager::mouseClickRight() {
     return e.type == SDL_MOUSEBUTTONUP && e.button.button == SDL_BUTTON_RIGHT;
 }
 
-bool EventManager::mouseClickLeftIn(const SDL_Rect& rect) {
-    if (!mouseClickLeft()) return false;
-
+bool EventManager::mouseIn(const SDL_Rect& rect) {
     int x,y;
     SDL_GetMouseState(&x, &y);
     if (x >= rect.x && x <= rect.x + rect.w &&
@@ -107,4 +105,8 @@ bool EventManager::mouseClickLeftIn(const SDL_Rect& rect) {
         return true;
     }
     else return false;
+}
+
+bool EventManager::mouseClickLeftIn(const SDL_Rect& rect) {
+    return mouseIn(rect) && mouseClickLeft();
 }

@@ -4,8 +4,9 @@
 
 #include "Page.h"
 #include "UIButton.h"
-#include "InputField.h"
 #include "ImageDisplayer.h"
+#include "InputField.h"
+#include "StatusSelector.h"
 #include "DateInput.h"
 
 class IdentityEditorPage : public Page {
@@ -22,6 +23,7 @@ private:
     ImageDisplayer* profilePicture;
     InputField* usernameInput;
     InputField* ageInput;
+    StatusSelector* statusSelector;
     DateInput* birthdayInput;
     UIButton* saveButton;
 };

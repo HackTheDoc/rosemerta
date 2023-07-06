@@ -1,6 +1,9 @@
 #include "include/StatusSelector.h"
-#include "include/Manager.h"
+#include "include/TextureManager.h"
+#include "include/Application.h"
+
 #include <iostream>
+
 StatusSelector::StatusSelector(int w, int h) {
     comment = TextureManager::GenerateText("Click to change!", "comment");
     SDL_QueryTexture(comment, NULL, NULL, &commentRect.w, &commentRect.h);
@@ -38,7 +41,7 @@ void StatusSelector::update() {
         hovering = false;
     }
 
-    if (Manager::event->mouseClickLeftIn(rect)) {
+    if (Application::event->mouseClickLeftIn(rect)) {
         selected++;
 
         if (selected > 2) selected = 0;

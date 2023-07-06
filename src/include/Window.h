@@ -3,29 +3,46 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <string>
+#include <map>
 
-class Manager;
-class UI;
+#include "UIElement.h"
+#include "Page.h"
 
 class Window {
 public:
-    static std::string title;
-    static SDL_Renderer* renderer;
-    static SDL_Rect screen;
-    static Manager* manager;
-    static UI* ui;
-    static bool isRunning;
-    static bool loggedIn;
+    static const int DEFAULT_FONT_SIZE;
+    static const int TITLE_FONT_SIZE;
+    static const int SUBTITLE_FONT_SIZE;
+    static const int COMMENTARY_FONT_SIZE;
+    
+    SDL_Window* w;
+    SDL_Renderer* renderer;
+    SDL_Rect screen;
 
     Window();
     ~Window();
 
-    int init();
-    void handleEvents();
+    void init();
     void update();
     void render();
-    void kill();
+    void destroy();
+
+    void addElement(std::string tag, UIElement* elt);
+    void removeElement(std::string tag);
+
+    void openPage(Page::Type p);
+    void validPage();
+
+    void setColor(std::string tag);
+    void setColor(SDL_Color c);
+    SDL_Color getColor(std::string tag);
+
+    TTF_Font* getFont(std::string tag);
 
 private:
-    SDL_Window* window;
+    std::map<std::string, UIElement*> elements;
+    Page* currentPage;
+
+    std::map<std::string, SDL_Color> color;
+    std::map<std::string, TTF_Font*> font;
 };

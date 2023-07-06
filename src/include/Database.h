@@ -6,8 +6,9 @@
 class Database {
 public:
     static void SetPath(std::string path);
-    static void Create();
 
+    static void Create();
+    
 private:
     static std::string path;
     static sqlite3* db;

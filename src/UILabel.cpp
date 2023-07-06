@@ -1,5 +1,5 @@
 #include "include/UILabel.h"
-#include "include/Manager.h"
+#include "include/TextureManager.h"
 
 UILabel::UILabel(std::string text, std::string type) {
     texture = nullptr;

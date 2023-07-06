@@ -1,15 +1,15 @@
 #include "include/BlankPage.h"
-#include "include/Window.h"
-#include "include/Manager.h"
+#include "include/Application.h"
+#include "include/TextureManager.h"
 
 BlankPage::BlankPage() {
-    rect = {0, 64, Window::screen.w, Window::screen.h - 64};
+    rect = {0, 64, Application::window->screen.w, Application::window->screen.h - 64};
 }
 
 BlankPage::~BlankPage() {}
 
 void BlankPage::init() {
-    lbl = new UILabel("Welcome, "+Manager::user.first+" !", "subtitle");
+    lbl = new UILabel("Welcome, "+Application::user.first+" !", "subtitle");
     lbl->place(
         (rect.w - lbl->width()) / 2,
         rect.y + 16

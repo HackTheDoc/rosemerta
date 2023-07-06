@@ -1,9 +1,9 @@
 #include "include/Header.h"
-#include "include/Window.h"
-#include "include/Manager.h"
+#include "include/Application.h"
+#include "include/TextureManager.h"
 
 Header::Header() {
-    rect = {0, 0, Window::screen.w, 64};
+    rect = {0, 0, Application::window->screen.w, 64};
 }
 
 Header::~Header() {}

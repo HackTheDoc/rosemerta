@@ -1,6 +1,6 @@
 #include "include/InputField.h"
-#include "include/Manager.h"
-#include "include/Window.h"
+#include "include/TextureManager.h"
+#include "include/Application.h"
 
 SDL_Rect InputField::cursor = {0,0,3,0};
 
@@ -51,18 +51,18 @@ void InputField::update() {
         textRect.y = field.y + (field.h - textRect.h) / 2 + 4;
     }
 
-    if (Manager::event->mouseClickLeftIn(rect))
+    if (Application::event->mouseClickLeftIn(rect))
         actived = true;
-    else if (Manager::event->mouseClickLeft() || Manager::event->mouseClickRight())
+    else if (Application::event->mouseClickLeft() || Application::event->mouseClickRight())
         actived = false;
     
     if (!actived) return;
 
-    if (Manager::event->e.type == SDL_TEXTINPUT) {
-        input += Manager::event->e.text.text;
+    if (Application::event->e.type == SDL_TEXTINPUT) {
+        input += Application::event->e.text.text;
     }
-    else if (Manager::event->e.type == SDL_KEYDOWN &&
-            Manager::event->e.key.keysym.sym == SDLK_BACKSPACE &&
+    else if (Application::event->e.type == SDL_KEYDOWN &&
+            Application::event->e.key.keysym.sym == SDLK_BACKSPACE &&
             !input.empty()
     ) {
         input.pop_back();   
@@ -98,7 +98,7 @@ void InputField::draw() {
         return;
     }
 
-    SDL_RenderSetViewport(Window::renderer, &field);
+    SDL_RenderSetViewport(Application::window->renderer, &field);
     TextureManager::Draw(text, nullptr, &textRect);
     if (actived) {
         TextureManager::DrawLine(
@@ -109,7 +109,7 @@ void InputField::draw() {
             "red"
         );
     }
-    SDL_RenderSetViewport(Window::renderer, NULL);
+    SDL_RenderSetViewport(Application::window->renderer, NULL);
 }
 
 void InputField::destroy() {

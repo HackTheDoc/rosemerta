@@ -1,5 +1,5 @@
 #include "include/ImageDisplayer.h"
-#include "include/Manager.h"
+#include "include/TextureManager.h"
 
 ImageDisplayer::ImageDisplayer(const char* imagepath, int w, int h) {
     rect = {0, 0, w, h};

@@ -1,11 +1,11 @@
 #include "include/IdentityEditorPage.h"
-#include "include/Window.h"
-#include "include/Manager.h"
+#include "include/Application.h"
+#include "include/TextureManager.h"
 
 #include <iostream>
 
 IdentityEditorPage::IdentityEditorPage() {
-    rect = {0, 64, Window::screen.w, Window::screen.h - 64};
+    rect = {0, 64, Application::window->screen.w, Application::window->screen.h - 64};
 }
 
 IdentityEditorPage::~IdentityEditorPage() {}
@@ -14,7 +14,7 @@ void IdentityEditorPage::init() {
     profilePicture = new ImageDisplayer(".app/assets/pictures/unknown.png", 160, 160);
     profilePicture->place(rect.x + 32, rect.y + 32);
 
-    usernameInput = new InputField("Username", 192, 48);
+    usernameInput = new InputField("Name", 192, 48);
     usernameInput->place(
         profilePicture->x() + profilePicture->width() + 32,
         profilePicture->y() + 11
@@ -46,7 +46,7 @@ void IdentityEditorPage::init() {
 }
 
 void IdentityEditorPage::update() {
-    if (Manager::event->enterKeyPressed()) {
+    if (Application::event->enterKeyPressed()) {
         if (!usernameInput->input.empty()) {
             std::cout << usernameInput->input << std::endl;
             usernameInput->input = "";
@@ -59,7 +59,7 @@ void IdentityEditorPage::update() {
         birthdayInput->clear();
     }
 
-    if (Manager::event->tabKeyPressed()) {
+    if (Application::event->tabKeyPressed()) {
         if (usernameInput->selected()) {
             usernameInput->unselect();
             ageInput->select();

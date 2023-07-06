@@ -1,6 +1,6 @@
 #include "include/UIButton.h"
-#include "include/Manager.h"
-#include "include/Window.h"
+#include "include/TextureManager.h"
+#include "include/Application.h"
 
 UIButton::UIButton(std::string text, std::string action) {
     this->text = TextureManager::GenerateText(text.c_str(), "default");
@@ -40,7 +40,7 @@ void UIButton::update() {
         hovered = false;
     }
 
-    if (hovered && Manager::event->mouseClickLeft()) {
+    if (hovered && Application::event->mouseClickLeft()) {
         use();
     }
 }
@@ -50,9 +50,9 @@ void UIButton::draw() {
         TextureManager::DrawFilledRect(&rect, "gray");
     else
         TextureManager::DrawFilledRect(&rect, "light gray");
-    SDL_RenderSetViewport(Window::renderer, &rect);
+    SDL_RenderSetViewport(Application::window->renderer, &rect);
     TextureManager::Draw(text, nullptr, &textRect);
-    SDL_RenderSetViewport(Window::renderer, NULL);
+    SDL_RenderSetViewport(Application::window->renderer, NULL);
     TextureManager::DrawRect(&rect, "black");
 }
 
@@ -62,5 +62,5 @@ void UIButton::destroy() {
 }
 
 void UIButton::use() {
-    Manager::event->handleClick(action);
+    Application::event->handleClick(action);
 }

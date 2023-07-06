@@ -1,110 +1,154 @@
 #include "include/Window.h"
-#include "include/Manager.h"
-#include "include/UI.h"
+#include "include/Application.h"
+
+#include "include/Header.h"
+
+#include "include/BlankPage.h"
+#include "include/RegisterPage.h"
+#include "include/LoginPage.h"
+#include "include/IdentityEditorPage.h"
 
 #include <iostream>
 
-std::string Window::title = "Persona";
-SDL_Renderer* Window::renderer = nullptr;
-SDL_Rect Window::screen = {0, 0, 800, 600};
-Manager* Window::manager = nullptr;
-UI* Window::ui = nullptr;
-bool Window::isRunning = false;
-bool Window::loggedIn = false;
+const int Window::DEFAULT_FONT_SIZE    = 32;
+const int Window::TITLE_FONT_SIZE      = 64;
+const int Window::SUBTITLE_FONT_SIZE   = 48;
+const int Window::COMMENTARY_FONT_SIZE = 16;
 
-Window::Window() : window(nullptr) {}
+Window::Window() : w(nullptr), renderer(nullptr), screen({0,0,800,600}), currentPage(nullptr) {}
 
 Window::~Window() {}
 
-int Window::init() {
-    manager = new Manager();
-    ui = new UI();
+void Window::init() {
+    // colors
+    color["black"]          = {  0,   0,   0, 255};
+    color["white"]          = {255, 255, 255, 255};
+    color["red"]            = {255,   0,   0, 255};
+    color["green"]          = {  0, 255,   0, 255};
+    color["blue"]           = {128, 191, 255, 255};
+    color["dark blue"]      = { 26, 140, 255, 255};
+    color["pink"]           = {230,   0, 230, 255};
+    color["turquoise"]      = {  0, 204, 204, 255};
+    color["gray"]           = {127, 127, 127, 255};
+    color["light gray"]     = {192, 192, 192, 255};
+    color["background"]     = {229, 252, 245, 255}; // mint green
+    color["border"]         = {117,  13,  55, 255}; // claret
+    color["font"]           = { 33,   1,  36, 255}; // dark purple
 
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        std::cout << SDL_GetError() << std::endl;
-        return -1;
-    }
-    if (TTF_Init() < 0) {
-        std::cout << SDL_GetError() << std::endl;
-        return -1;
-    }
+    // fonts
+    font["default"]         = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf" , DEFAULT_FONT_SIZE);
+    font["big"]             = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf" , SUBTITLE_FONT_SIZE);
+    font["title"]           = TTF_OpenFont("./assets/fonts/Oxanium-Bold.ttf"    , TITLE_FONT_SIZE);
+    font["subtitle"]        = TTF_OpenFont("./assets/fonts/Oxanium-SemiBold.ttf", SUBTITLE_FONT_SIZE);
+    font["comment"]         = TTF_OpenFont("./assets/fonts/Oxanium-Regular.ttf" , COMMENTARY_FONT_SIZE);
 
-    window = SDL_CreateWindow(
-        title.c_str(),
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        screen.w,
-        screen.h,
-        SDL_WINDOW_SHOWN
-    );
-    if (!window) {
-        std::cout << "Error creating window!" << std::endl;
-        return -2;
-    }
+    Header* h = new Header();
+    h->init();
+    elements["header"] = h;
 
-    renderer = SDL_CreateRenderer(
-        window,
-        -1,
-        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
-    );
-    if (!renderer) {
-        std::cout << "Error creating renderer!" << std::endl;
-        return -2;
-    }
-
-    manager->init();
-    manager->setColor("background");
-
-    ui->init();
-
-    isRunning = true;
-
-    return 0;
-}
-
-void Window::handleEvents() {
-    SDL_PollEvent(&Manager::event->e);
-
-    switch (Manager::event->e.type) {
-    case SDL_QUIT:
-        isRunning = false;
-        break;
-    default:
-        Manager::event->handleKeyboardInput();
-        break;
-    }
+    openPage(Page::Type::LOGIN);
 }
 
 void Window::update() {
-    ui->update();
+    currentPage->update();
+    for (auto e : elements) {
+        e.second->update();
+    }
 }
 
 void Window::render() {
-    SDL_RenderClear(renderer);
-
-    ui->render();
-
-    SDL_RenderPresent(renderer);
+    currentPage->render();
+    for (auto e : elements) {
+        e.second->draw();
+    }
 }
 
-void Window::kill() {
-    if (Manager::user.first != "unknown") {
-        Manager::Encrypt("./users/"+Manager::user.first, Manager::user.second);
+void Window::destroy() {
+    color.clear();
+
+    for (auto f : font) {
+        TTF_CloseFont(f.second);
     }
+    font.clear();
 
-    manager->clear();
-    delete manager;
-    manager = nullptr;
-
-    ui->destroy();
-    delete ui;
-    ui = nullptr;
+    currentPage->destroy();
+    for (auto e : elements) {
+        e.second->destroy();
+    }
+    elements.clear();
 
     SDL_DestroyRenderer(renderer);
     renderer = nullptr;
 
-    SDL_DestroyWindow(window);
-    window = nullptr;
+    SDL_DestroyWindow(w);
+    w = nullptr;
+}
 
-    SDL_Quit();
+void Window::addElement(std::string tag, UIElement* elt) {
+    removeElement(tag);
+    elements[tag] = elt;
+}
+
+void Window::removeElement(std::string tag) {
+    if (elements.count(tag) == 0) return;
+    elements[tag]->destroy();
+    elements.erase(tag);
+}
+
+void Window::openPage(Page::Type p) {
+    if (!Application::loggedIn) {
+        if (p == Page::Type::LOGIN) {
+            if (currentPage != nullptr) currentPage->destroy();
+            currentPage = new LoginPage();
+            currentPage->init();
+        }
+        else if (p == Page::Type::REGISTER) {
+            if (currentPage != nullptr) currentPage->destroy();
+            currentPage = new RegisterPage();
+            currentPage->init();
+        }
+        return;
+    }
+
+    if (currentPage != nullptr) currentPage->destroy();
+
+    switch (p) {
+    case Page::Type::LOGIN:
+        currentPage = new LoginPage();
+        break;
+    case Page::Type::REGISTER:
+        currentPage = new RegisterPage();
+        break;
+    case Page::Type::IDENTITY_EDITOR:
+        currentPage = new IdentityEditorPage();
+        break;
+    case Page::Type::BLANK:
+    default:
+        currentPage = new BlankPage();
+        break;
+    }
+
+    currentPage->init();
+}
+
+void Window::validPage() {
+    currentPage->valid();
+}
+
+void Window::setColor(std::string tag) {
+    setColor(getColor(tag));
+}
+
+void Window::setColor(SDL_Color c) {
+    SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, c.a);
+}
+
+SDL_Color Window::getColor(std::string tag) {
+    if (color.count(tag) <= 0) return color["black"];
+    return color[tag];
+}
+
+TTF_Font* Window::getFont(std::string tag) {
+    if (font.count(tag) <= 0) return nullptr;
+    return font[tag];
 }

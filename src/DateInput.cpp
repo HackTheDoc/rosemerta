@@ -1,5 +1,5 @@
 #include "include/DateInput.h"
-#include "include/Manager.h"
+#include "include/TextureManager.h"
 
 #include <regex>
 #include <iostream>

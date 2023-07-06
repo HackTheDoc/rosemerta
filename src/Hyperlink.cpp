@@ -1,6 +1,6 @@
 #include "include/HyperLink.h"
-#include "include/Manager.h"
-#include "include/Window.h"
+#include "include/TextureManager.h"
+#include "include/Application.h"
 
 HyperLink::HyperLink(std::string text, std::string action) {
     normal = TextureManager::GenerateText(text.c_str(), "comment", 512, "blue");
@@ -25,8 +25,8 @@ void HyperLink::update() {
         hovered = false;
     }
 
-    if (hovered && Manager::event->mouseClickLeft()) {
-        Manager::event->handleClick(action);
+    if (hovered && Application::event->mouseClickLeft()) {
+        Application::event->handleClick(action);
     }
 }
 

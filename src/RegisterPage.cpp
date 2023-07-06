@@ -1,15 +1,14 @@
 #include "include/RegisterPage.h"
-#include "include/Window.h"
-#include "include/Manager.h"
+#include "include/Application.h"
+#include "include/TextureManager.h"
 #include "include/Database.h"
-#include "include/UI.h"
 
 #include <regex>
 #include <filesystem>
 #include <iostream>
 
 RegisterPage::RegisterPage() {
-    rect = {0, 64, Window::screen.w, Window::screen.h - 64};
+    rect = {0, 64, Application::window->screen.w, Application::window->screen.h - 64};
 }
 
 RegisterPage::~RegisterPage() {}
@@ -50,16 +49,16 @@ void RegisterPage::init() {
         confirmPasswordInput->y() + confirmPasswordInput->height() + 16
     );
     
-    Window::loggedIn = false;
+    Application::loggedIn = false;
 }
 
 void RegisterPage::update() {
-    if (Manager::event->enterKeyPressed()) {
+    if (Application::event->enterKeyPressed()) {
         button->use();
         return;
     }
     
-    if (Manager::event->tabKeyPressed()) {
+    if (Application::event->tabKeyPressed()) {
         if (usernameInput->selected()) {
             usernameInput->unselect();
             passwordInput->select();
@@ -134,7 +133,7 @@ void RegisterPage::valid() {
     Database::Create();
 
     // log in
-    Manager::user = std::make_pair(usernameInput->input, passwordInput->input);
-    Window::loggedIn = true;
-    Window::ui->openPage(Page::Type::BLANK);
+    Application::user = std::make_pair(usernameInput->input, passwordInput->input);
+    Application::loggedIn = true;
+    Application::window->openPage(Page::Type::BLANK);
 }

@@ -1,13 +1,12 @@
 #include "include/TextureManager.h"
-#include "include/Window.h"
-#include "include/Manager.h"
+#include "include/Application.h"
 
 #include <vector>
 
 SDL_Texture* TextureManager::LoadTexture(const char* filepath) {
     SDL_Surface* s = IMG_Load(filepath);
 
-    SDL_Texture* t = SDL_CreateTextureFromSurface(Window::renderer, s);
+    SDL_Texture* t = SDL_CreateTextureFromSurface(Application::window->renderer, s);
 
     SDL_FreeSurface(s);
 
@@ -15,14 +14,14 @@ SDL_Texture* TextureManager::LoadTexture(const char* filepath) {
 }
 
 SDL_Texture* TextureManager::GenerateText(const char* text, std::string fontName, int length, std::string color) {
-    TTF_Font* f = Window::manager->getFont(fontName);
+    TTF_Font* f = Application::window->getFont(fontName);
     if (f == nullptr) return nullptr;
 
-    SDL_Color c = Window::manager->getColor(color);
+    SDL_Color c = Application::window->getColor(color);
 
     SDL_Surface* s = TTF_RenderText_Blended_Wrapped(f, text, c, length);
 
-    SDL_Texture* t = SDL_CreateTextureFromSurface(Window::renderer, s);
+    SDL_Texture* t = SDL_CreateTextureFromSurface(Application::window->renderer, s);
 
     SDL_FreeSurface(s);
 
@@ -32,7 +31,7 @@ SDL_Texture* TextureManager::GenerateText(const char* text, std::string fontName
 void TextureManager::Draw(SDL_Texture* texture, SDL_Rect* src, SDL_Rect* dest) {
     if (texture == nullptr) return;
 
-    SDL_RenderCopy(Window::renderer, texture, src, dest);
+    SDL_RenderCopy(Application::window->renderer, texture, src, dest);
 }
 
 void TextureManager::DrawRect(SDL_Rect* rect, std::string color, int borderWidth) {
@@ -43,37 +42,37 @@ void TextureManager::DrawRect(SDL_Rect* rect, std::string color, int borderWidth
     }
 
     SDL_Color t;
-    SDL_GetRenderDrawColor(Window::renderer, &t.r, &t.g, &t.b, &t.a);
+    SDL_GetRenderDrawColor(Application::window->renderer, &t.r, &t.g, &t.b, &t.a);
     
-    Window::manager->setColor(color);
+    Application::window->setColor(color);
 
-    SDL_RenderDrawRect(Window::renderer, rect);
+    SDL_RenderDrawRect(Application::window->renderer, rect);
     for (auto r : buffer)
-        SDL_RenderDrawRect(Window::renderer, &r);
+        SDL_RenderDrawRect(Application::window->renderer, &r);
 
-    Window::manager->setColor(t);
+    Application::window->setColor(t);
 
     buffer.clear();
 }
 
 void TextureManager::DrawFilledRect(SDL_Rect* rect, std::string color) {
     SDL_Color t;
-    SDL_GetRenderDrawColor(Window::renderer, &t.r, &t.g, &t.b, &t.a);
+    SDL_GetRenderDrawColor(Application::window->renderer, &t.r, &t.g, &t.b, &t.a);
     
-    Window::manager->setColor(color);
+    Application::window->setColor(color);
 
-    SDL_RenderFillRect(Window::renderer, rect);
+    SDL_RenderFillRect(Application::window->renderer, rect);
 
-    Window::manager->setColor(t);
+    Application::window->setColor(t);
 }
 
 void TextureManager::DrawLine(int x1, int y1, int x2, int y2, std::string color) {
     SDL_Color t;
-    SDL_GetRenderDrawColor(Window::renderer, &t.r, &t.g, &t.b, &t.a);
+    SDL_GetRenderDrawColor(Application::window->renderer, &t.r, &t.g, &t.b, &t.a);
     
-    Window::manager->setColor(color);
+    Application::window->setColor(color);
 
-    SDL_RenderDrawLine(Window::renderer, x1, y1, x2, y2);
+    SDL_RenderDrawLine(Application::window->renderer, x1, y1, x2, y2);
     
-    Window::manager->setColor(t);
+    Application::window->setColor(t);
 }

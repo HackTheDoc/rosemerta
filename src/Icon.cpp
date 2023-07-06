@@ -1,5 +1,6 @@
 #include "include/Icon.h"
-#include "include/Manager.h"
+#include "include/TextureManager.h"
+#include "include/Application.h"
 
 Icon::Icon(std::string iconpath, std::string text, std::string action, int x, int y) {
     icon = TextureManager::LoadTexture(iconpath.c_str());
@@ -32,8 +33,8 @@ void Icon::update() {
         hovering = false;
     }
 
-    if (hovering && Manager::event->mouseClickLeft()) {
-        Manager::event->handleClick(action);
+    if (hovering && Application::event->mouseClickLeft()) {
+        Application::event->handleClick(action);
     }
 }
 

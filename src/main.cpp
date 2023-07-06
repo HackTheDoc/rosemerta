@@ -1,23 +1,23 @@
 #include <iostream>
 #include <SDL2/SDL.h>
 
-#include "include/Window.h"
+#include "include/Application.h"
 
-Window window;
+Application app;
 
 int main() {
-    if (window.init() != 0) {
-        window.kill();
+    if (app.init() != 0) {
+        app.kill();
         return -1;
     }
 
-    while (Window::isRunning) {
-        window.handleEvents();
-        window.update();
-        window.render();
+    while (Application::isRunning) {
+        app.handleEvents();
+        app.update();
+        app.render();
     }
 
-    window.kill();
+    app.kill();
 
     return 0;
 }

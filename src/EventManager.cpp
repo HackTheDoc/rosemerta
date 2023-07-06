@@ -1,7 +1,5 @@
 #include "include/EventManager.h"
-#include "include/Window.h"
-#include "include/Manager.h"
-#include "include/UI.h"
+#include "include/Application.h"
 
 #include <iostream>
 
@@ -23,21 +21,19 @@ EventManager::~EventManager() {}
 void EventManager::handleClick(std::string event) {
     switch(id[event]) {
     case EventID::VALID:
-        Window::ui->validPage();
+        Application::window->validPage();
         break;
     case EventID::LOG:
-        if (Manager::database != "unknown")
-            Manager::database = "unknown";
-        Window::ui->openPage(Page::Type::LOGIN);
+        Application::window->openPage(Page::Type::LOGIN);
         break;
     case EventID::OPEN_REGISTER_PAGE:
-        Window::ui->openPage(Page::Type::REGISTER);
+        Application::window->openPage(Page::Type::REGISTER);
         break;
     case EventID::SAVE:
         std::cout << "saving..." << std::endl;
         break;
     case EventID::CREATE_NEW_IDENTITY:
-        Window::ui->openPage(Page::Type::IDENTITY_EDITOR);
+        Application::window->openPage(Page::Type::IDENTITY_EDITOR);
         break;
     case EventID::CATALOG:
         std::cout << "catalog..." << std::endl;
@@ -55,7 +51,7 @@ void EventManager::handleKeyboardInput() {
         switch (e.key.keysym.sym) {
         case SDLK_q:
             if (SDL_GetModState() & KMOD_CTRL)
-                Window::isRunning = false;
+                Application::isRunning = false;
             break;
         default:
             break;
@@ -66,13 +62,13 @@ void EventManager::handleKeyboardInput() {
         switch (e.key.keysym.sym) {
         case SDLK_r:
             if (SDL_GetModState() & KMOD_CTRL) {
-                Manager::selectedIdentity = -1;
-                Window::ui->openPage(Page::Type::REGISTER);
+                Application::selectedIdentity = -1;
+                Application::window->openPage(Page::Type::REGISTER);
             }
         case SDLK_n:
             if (SDL_GetModState() & KMOD_CTRL) {
-                Manager::selectedIdentity = -1;
-                Window::ui->openPage(Page::Type::IDENTITY_EDITOR);
+                Application::selectedIdentity = -1;
+                Application::window->openPage(Page::Type::IDENTITY_EDITOR);
             }
         default:
             break;

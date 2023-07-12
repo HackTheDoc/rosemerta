@@ -11,6 +11,7 @@ public:
         LOG,
         OPEN_REGISTER_PAGE,
         SAVE, // is it really usefull ?
+        IDENTITY,
         CREATE_NEW_IDENTITY,
         CATALOG,
         OPTIONS,
@@ -37,4 +38,10 @@ public:
 
 private:
     static std::map<std::string, EventID> id;
+
+    void handleLoggedInEvents();
+    void handleLoggedOffEvents();
+
+    void handleLoggedInClicks(std::string event);
+    void handleLoggedOffClicks(std::string event);
 };

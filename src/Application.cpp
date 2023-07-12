@@ -1,4 +1,5 @@
 #include "include/Application.h"
+#include "include/Database.h"
 
 #include <iostream>
 
@@ -92,4 +93,16 @@ void Application::kill() {
     window = nullptr;
 
     SDL_Quit();
+}
+
+void Application::LogOff() {
+    selectedIdentity = -1;
+    
+    user = std::make_pair("-1", "-1");
+
+    Database::SetPath("-1");
+
+    loggedIn = false;
+
+    window->openPage(Page::Type::LOGIN);
 }

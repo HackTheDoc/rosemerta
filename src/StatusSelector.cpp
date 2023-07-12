@@ -69,3 +69,7 @@ void StatusSelector::destroy() {
 
     SDL_DestroyTexture(comment);
 }
+
+int StatusSelector::getSelection() {
+    return selected;
+};

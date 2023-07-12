@@ -6,21 +6,26 @@
 
 #include "UIElement.h"
 
-class StatusSelector : public UIElement {
+class CatalogFilter : public UIElement {
 public:
-    StatusSelector(int w, int h);
-    ~StatusSelector();
+    CatalogFilter(int w, int h);
+    ~CatalogFilter();
 
     void update() override;
     void draw() override;
     void destroy() override;
 
-    int getSelection();
+    void place(int x, int y);
 
 private:
-    std::vector<SDL_Texture*> status;
-    int selected;
+    SDL_Texture* text;
     SDL_Rect textRect;
+
+    SDL_Rect selectorRect;
+
+    std::vector<SDL_Texture*> filters;
+    int selected;
+    SDL_Rect filterRect;
 
     SDL_Texture* comment;
     SDL_Rect commentRect, commentBorder;

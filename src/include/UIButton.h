@@ -15,6 +15,7 @@ public:
     void destroy() override;
 
     void use();
+    void place(int x, int y);
 
 private:
     SDL_Texture* text;

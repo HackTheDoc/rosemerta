@@ -8,7 +8,8 @@ public:
         BLANK,
         LOGIN,
         REGISTER,
-        IDENTITY_EDITOR
+        IDENTITY_EDITOR,
+        CATALOG
     };
 
     Page() = default;

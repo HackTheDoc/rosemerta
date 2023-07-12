@@ -7,6 +7,7 @@
 #include "include/RegisterPage.h"
 #include "include/LoginPage.h"
 #include "include/IdentityEditorPage.h"
+#include "include/CatalogPage.h"
 
 #include <iostream>
 
@@ -96,20 +97,6 @@ void Window::removeElement(std::string tag) {
 }
 
 void Window::openPage(Page::Type p) {
-    if (!Application::loggedIn) {
-        if (p == Page::Type::LOGIN) {
-            if (currentPage != nullptr) currentPage->destroy();
-            currentPage = new LoginPage();
-            currentPage->init();
-        }
-        else if (p == Page::Type::REGISTER) {
-            if (currentPage != nullptr) currentPage->destroy();
-            currentPage = new RegisterPage();
-            currentPage->init();
-        }
-        return;
-    }
-
     if (currentPage != nullptr) currentPage->destroy();
 
     switch (p) {
@@ -121,6 +108,9 @@ void Window::openPage(Page::Type p) {
         break;
     case Page::Type::IDENTITY_EDITOR:
         currentPage = new IdentityEditorPage();
+        break;
+    case Page::Type::CATALOG:
+        currentPage = new CatalogPage();
         break;
     case Page::Type::BLANK:
     default:

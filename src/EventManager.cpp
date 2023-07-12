@@ -8,6 +8,7 @@ std::map<std::string, EventManager::EventID> EventManager::id = {
     {"log"                  , EventID::LOG                  },
     {"open register page"   , EventID::OPEN_REGISTER_PAGE   },
     {"save"                 , EventID::SAVE                 },
+    {"identity"             , EventID::IDENTITY             },
     {"new identity"         , EventID::CREATE_NEW_IDENTITY  },
     {"catalog"              , EventID::CATALOG              },
     {"options"              , EventID::OPTIONS              },
@@ -19,61 +20,19 @@ EventManager::EventManager() {}
 EventManager::~EventManager() {}
 
 void EventManager::handleClick(std::string event) {
-    switch(id[event]) {
-    case EventID::VALID:
-        Application::window->validPage();
-        break;
-    case EventID::LOG:
-        Application::window->openPage(Page::Type::LOGIN);
-        break;
-    case EventID::OPEN_REGISTER_PAGE:
-        Application::window->openPage(Page::Type::REGISTER);
-        break;
-    case EventID::SAVE:
-        std::cout << "saving..." << std::endl;
-        break;
-    case EventID::CREATE_NEW_IDENTITY:
-        Application::window->openPage(Page::Type::IDENTITY_EDITOR);
-        break;
-    case EventID::CATALOG:
-        std::cout << "catalog..." << std::endl;
-        break;
-    case EventID::OPTIONS:
-        std::cout << "options..." << std::endl;
-        break;
-    default:
-        break;
-    }
+    if (Application::loggedIn)
+        handleLoggedInClicks(event);
+    else
+        handleLoggedOffClicks(event);
 }
 
 void EventManager::handleKeyboardInput() {
-    if (e.type == SDL_KEYDOWN) {
-        switch (e.key.keysym.sym) {
-        case SDLK_q:
-            if (SDL_GetModState() & KMOD_CTRL)
-                Application::isRunning = false;
-            break;
-        default:
-            break;
-        }
-    }
+    if (e.type != SDL_KEYUP) return;
 
-    if (e.type == SDL_KEYUP) {
-        switch (e.key.keysym.sym) {
-        case SDLK_r:
-            if (SDL_GetModState() & KMOD_CTRL) {
-                Application::selectedIdentity = -1;
-                Application::window->openPage(Page::Type::REGISTER);
-            }
-        case SDLK_n:
-            if (SDL_GetModState() & KMOD_CTRL) {
-                Application::selectedIdentity = -1;
-                Application::window->openPage(Page::Type::IDENTITY_EDITOR);
-            }
-        default:
-            break;
-        }
-    }
+    if (Application::loggedIn)
+        handleLoggedInEvents();
+    else
+        handleLoggedOffEvents();
 }
 
 bool EventManager::enterKeyPressed() {
@@ -105,4 +64,87 @@ bool EventManager::mouseIn(const SDL_Rect& rect) {
 
 bool EventManager::mouseClickLeftIn(const SDL_Rect& rect) {
     return mouseIn(rect) && mouseClickLeft();
+}
+
+void EventManager::handleLoggedInClicks(std::string event) {
+    switch(id[event]) {
+    case EventID::LOG:
+        Application::LogOff();
+        break;
+    case EventID::SAVE:
+        std::cout << "saving..." << std::endl;
+        break;
+    case EventID::IDENTITY:
+        std::cout << "inspecting identity " << Application::selectedIdentity << " ..." << std::endl;
+        break;
+    case EventID::CREATE_NEW_IDENTITY:
+        Application::window->openPage(Page::Type::IDENTITY_EDITOR);
+        break;
+    case EventID::CATALOG:
+        Application::window->openPage(Page::Type::CATALOG);
+        break;
+    case EventID::OPTIONS:
+        std::cout << "options..." << std::endl;
+        break;
+    default:
+        break;
+    }
+}
+
+void EventManager::handleLoggedOffClicks(std::string event) {
+    switch(id[event]) {
+    case EventID::VALID:
+        Application::window->validPage();
+        break;
+    case EventID::LOG:
+            Application::window->openPage(Page::Type::LOGIN);
+        break;
+    case EventID::OPEN_REGISTER_PAGE:
+            Application::window->openPage(Page::Type::REGISTER);
+        break;
+    default:
+        break;
+    }
+}
+
+void EventManager::handleLoggedInEvents() {
+    switch (e.key.keysym.sym) {
+    case SDLK_q:
+        if (SDL_GetModState() & KMOD_CTRL)
+            Application::isRunning = false;
+        break;
+    case SDLK_n:
+        if (SDL_GetModState() & KMOD_CTRL) {
+            Application::selectedIdentity = -1;
+            Application::window->openPage(Page::Type::IDENTITY_EDITOR);
+        }
+    case SDLK_c:
+        if (SDL_GetModState() & KMOD_CTRL)
+            Application::window->openPage(Page::Type::CATALOG);
+    case SDLK_ESCAPE:
+        Application::selectedIdentity = -1;
+    default:
+        break;
+    }
+}
+
+void EventManager::handleLoggedOffEvents() {
+    switch(e.key.keysym.sym) {
+    case SDLK_q:
+        if (SDL_GetModState() & KMOD_CTRL)
+            Application::isRunning = false;
+        break;
+    case SDLK_l:
+        if (SDL_GetModState() & KMOD_CTRL) {
+            Application::selectedIdentity = -1;
+            Application::window->openPage(Page::Type::LOGIN);
+        }
+    case SDLK_r:
+        if (SDL_GetModState() & KMOD_CTRL) {
+            Application::selectedIdentity = -1;
+            Application::window->openPage(Page::Type::REGISTER);
+        }
+    default:
+        break;
+    }
 }

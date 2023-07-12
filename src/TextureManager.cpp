@@ -19,7 +19,7 @@ SDL_Texture* TextureManager::GenerateText(const char* text, std::string fontName
 
     SDL_Color c = Application::window->getColor(color);
 
-    SDL_Surface* s = TTF_RenderText_Blended_Wrapped(f, text, c, length);
+    SDL_Surface* s = TTF_RenderUTF8_Blended_Wrapped(f, text, c, length);
 
     SDL_Texture* t = SDL_CreateTextureFromSurface(Application::window->renderer, s);
 
@@ -75,4 +75,8 @@ void TextureManager::DrawLine(int x1, int y1, int x2, int y2, std::string color)
     SDL_RenderDrawLine(Application::window->renderer, x1, y1, x2, y2);
     
     Application::window->setColor(t);
+}
+
+void TextureManager::SetViewport(SDL_Rect* rect) {
+    SDL_RenderSetViewport(Application::window->renderer, rect);
 }

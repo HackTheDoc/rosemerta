@@ -17,8 +17,6 @@ UIButton::UIButton(std::string text, std::string action) {
 UIButton::UIButton(std::string text, std::string action, int w, int h) {
     this->text = TextureManager::GenerateText(text.c_str(), "default", w);
     SDL_QueryTexture(this->text, NULL, NULL, &textRect.w, &textRect.h);
-    textRect.x = (w - textRect.w) / 2;
-    textRect.y = (h - textRect.h) / 2 + 4;
 
     rect.x = rect.y = 0;
     rect.w = w;
@@ -50,9 +48,7 @@ void UIButton::draw() {
         TextureManager::DrawFilledRect(&rect, "gray");
     else
         TextureManager::DrawFilledRect(&rect, "light gray");
-    SDL_RenderSetViewport(Application::window->renderer, &rect);
     TextureManager::Draw(text, nullptr, &textRect);
-    SDL_RenderSetViewport(Application::window->renderer, NULL);
     TextureManager::DrawRect(&rect, "black");
 }
 
@@ -63,4 +59,11 @@ void UIButton::destroy() {
 
 void UIButton::use() {
     Application::event->handleClick(action);
+}
+
+void UIButton::place(int x, int y) {
+    rect.x = x;
+    rect.y = y;
+    textRect.x = x + (rect.w - textRect.w) / 2;
+    textRect.y = y + (rect.h - textRect.h) / 2 + 4;
 }

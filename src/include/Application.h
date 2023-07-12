@@ -27,4 +27,6 @@ public:
     void update();
     void render();
     void kill();
+
+    static void LogOff();
 };

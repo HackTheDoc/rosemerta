@@ -1,23 +1,35 @@
 #include <iostream>
-#include <SDL2/SDL.h>
 
-#include "include/Application.h"
+#include "include/application.h"
 
 Application app;
 
-int main() {
-    if (app.init() != 0) {
-        app.kill();
-        return -1;
+int main(int argc, const char* argv[]) {
+    if (argc > 1) {
+        std::string arg = argv[1];
+        if (arg == "-v" || arg == "--version") {
+            std::cout << "rosemerta " + Application::version << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+        else if (arg == "-h" || arg == "--help") {
+            std::cout << "Usage:"                                   << std::endl;
+            std::cout << "  rosemerta [option]"                     << std::endl;
+
+            std::cout << std::endl;
+
+            std::cout << "Options:"                                 << std::endl;
+            std::cout << "  -h or --help    Display this text."     << std::endl;
+            std::cout << "  -v or --version Show current version."  << std::endl;
+
+            exit(EXIT_SUCCESS);
+        }
     }
 
-    while (Application::isRunning) {
-        app.handleEvents();
-        app.update();
-        app.render();
-    }
+    app.start();
+
+    while (Application::isRunning) app.run();
 
     app.kill();
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }

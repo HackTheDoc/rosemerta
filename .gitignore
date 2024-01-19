@@ -1,11 +1,11 @@
 .vscode/
 
+.editorconfig
+
+temp/
+
 obj/
 
 *.d
 
-Makefile
-
-temp/
-
-peda-session-*.txt
+rosemerta

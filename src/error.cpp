@@ -10,6 +10,9 @@ namespace error {
         case code::NONE:
             hue::println("no error...");
             break;
+        case code::CANNOT_OPEN_FOLDER:
+            hue::println("failed to open associated folder");
+            break;
         case code::DATABASE_DOES_NOT_EXIST:
             hue::println("database does not exist");
             break;

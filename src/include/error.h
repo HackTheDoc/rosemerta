@@ -5,6 +5,8 @@ namespace error {
         NONE,
         UNKNOWN,
 
+        CANNOT_OPEN_FOLDER,
+
         DATABASE_DOES_NOT_EXIST,
         CANNOT_CREATE_DATABASE,
 

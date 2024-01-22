@@ -30,6 +30,10 @@ public:
     /// @return a vector with the list of persons
     static std::vector<std::pair<int, std::string>> List(int page = 0);
 
+    /// @brief List every id of the database
+    /// @return
+    static std::vector<int> ListIDs();
+
     /// @brief Insert a new element int the database (with just the name and/or username)
     /// @param firsname
     /// @param lastname

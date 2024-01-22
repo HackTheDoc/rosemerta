@@ -139,6 +139,29 @@ std::vector<std::pair<int, std::string>> Database::List(int page) {
     return buffer;
 }
 
+std::vector<int> Database::ListIDs() {
+    std::vector<int> buffer;
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return buffer;
+    }
+
+    const char* query = "SELECT id FROM identities ORDER BY id ASC";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW)
+        buffer.push_back(sqlite3_column_int(stmt, 0));
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    error = error::code::NONE;
+    return buffer;
+}
+
 int Database::Insert(const std::string& firstname, const std::string& lastname, const std::string& username) {
 #pragma region INSERTION
     int rc = sqlite3_open(path.c_str(), &db);

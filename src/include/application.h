@@ -23,7 +23,11 @@ public:
         ID,
         GET,
 
-        SET
+        SET,
+
+        EXPORT,
+        EXPORT_ALL,
+        OUTPUT
     };
 
     static const std::string version;
@@ -51,6 +55,8 @@ private:
 
     static Command ConvertToCommand(const std::string& s);
 
+    std::string outputDir;
+
     /// @brief buffer containing every words of a user input (cleared between every inputs)
     std::vector<std::string> buffer;
 
@@ -77,4 +83,8 @@ private:
     void commandGet();
 
     void commandSet();
+
+    void commandExport(int id = -1);
+    void commandExportAll();
+    void commandOutput();
 };

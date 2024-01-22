@@ -4,9 +4,23 @@
 #include "include/hue.h"
 
 #include <iostream>
+#include <fstream>
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 #include <pwd.h>
 #include <unistd.h>
+
+#ifdef _WIN32 // Windows
+    #include <direct.h>
+    #define MKDIR(dir) _mkdir(dir)
+    #define OPEN_CMD "start "
+#else // POSIX (Linux, macOS, etc.)
+    #include <sys/stat.h>
+    #define MKDIR(dir) mkdir(dir, 0777)
+    #define OPEN_CMD "open "
+#endif
 
 bool isValidDate(const char* date) {
     int y, m, d;
@@ -20,37 +34,46 @@ const std::string Application::version = "1.0";
 bool Application::isRunning = false;
 
 const std::unordered_map<std::string, Application::Command> Application::STRING_TO_COMMAND = {
-    {"unknown"  , Command::UNKNOWN         },
+    {"unknown"      , Command::UNKNOWN                  },
 
-    // terminal cmds
-    {"help"     , Command::HELP            },
+    // terminal cmds                
+    {"help"         , Command::HELP                     },
 
-    {"version"  , Command::VERSION         },
-    {"ver"      , Command::VERSION         },
+    {"version"      , Command::VERSION                  },
+    {"ver"          , Command::VERSION                  },
 
-    {"exit"     , Command::EXIT            },
+    {"exit"         , Command::EXIT                     },
 
-    {"clear"    , Command::CLEAR           },
-    {"cls"      , Command::CLEAR           },
+    {"clear"        , Command::CLEAR                    },
+    {"cls"          , Command::CLEAR                    },
 
-    // database pragma cmds
-    {"size"     , Command::SIZE            },
-    {"sz"       , Command::SIZE            },
+    // database pragma cmds             
+    {"size"         , Command::SIZE                     },
+    {"sz"           , Command::SIZE                     },
 
-    {"list"     , Command::LIST            },
-    {"ls"       , Command::LIST            },
+    {"list"         , Command::LIST                     },
+    {"ls"           , Command::LIST                     },
 
-    // database manipulation cmds   
-    {"new"          , Command::NEW         },
+    // database manipulation cmds                   
+    {"new"          , Command::NEW                      },
 
-    {"delete"       , Command::DELETE      },
-    {"del"          , Command::DELETE      },
+    {"delete"       , Command::DELETE                   },
+    {"del"          , Command::DELETE                   },
 
-    {"id"           , Command::ID          },
+    {"id"           , Command::ID                       },
 
-    {"get"          , Command::GET         },
+    {"get"          , Command::GET                      },
 
-    {"set"          , Command::SET         },
+    {"set"          , Command::SET                      },
+
+    // exportations cmds    
+    {"export"       , Application::Command::EXPORT      },
+
+    {"export-all"   , Application::Command::EXPORT_ALL  },
+    {"exportall"    , Application::Command::EXPORT_ALL  },
+    {"export_all"   , Application::Command::EXPORT_ALL  },
+
+    {"output"       , Application::Command::OUTPUT      }
 };
 
 Application::Application() {}
@@ -68,6 +91,16 @@ void Application::start() {
         Database::SetPath("/tmp/rosemerta.db");
 
     if (!Database::Exist()) Database::Create();
+
+    // init folders
+    //// ouput folder
+    outputDir = "/tmp/rosemerta-output/";
+    if (homeDir) {
+        std::string home(homeDir);
+        outputDir = home+"/.rosemerta/output/";
+    }
+    if (!std::filesystem::exists(outputDir)) MKDIR(outputDir.c_str());
+
 
     // init cmds
     commandClear();
@@ -152,6 +185,15 @@ void Application::eval(const std::string& input) {
     case Command::SET:
         commandSet();
         break;
+    case Command::EXPORT:
+        commandExport();
+        break;
+    case Command::EXPORT_ALL:
+        commandExportAll();
+        break;
+    case Command::OUTPUT:
+        commandOutput();
+        break;
     case Command::UNKNOWN:
     default:
         error::raise(error::code::UNKNOWN_COMMAND, buffer.at(0).c_str());
@@ -231,6 +273,12 @@ void Application::commandHelp() {
     std::cout << "  get <id>" << std::endl;
 
     std::cout << "  set <id> <param> <value>" << std::endl;
+
+    std::cout << std::endl;
+
+    std::cout << "  export <id>" << std::endl;
+    std::cout << "  export-all" << std::endl;
+    std::cout << "  output" << std::endl;
 }
 
 void Application::printHelp(const Command c) {
@@ -273,6 +321,16 @@ void Application::printHelp(const Command c) {
         std::cout << "          age [int]                         Set the element's age" << std::endl;
         std::cout << "          birthday [DD-MM-YY]               Set the element's birthday date" << std::endl;
         std::cout << "          status [alive || dead || unknown] Set wether the element is alive or not" << std::endl;
+        break;
+    case Application::Command::EXPORT:
+        std::cout << "export <id>   Export the profile of an element to an output directory located in the application files" << std::endl;
+        std::cout << "              Use 'output' command to open the ouput folder" << std::endl;
+        break;
+    case Application::Command::EXPORT_ALL:
+        std::cout << "export-all    Export every elements of the database" << std::endl;
+        break;
+    case Application::Command::OUTPUT:
+        std::cout << "ouput         Open the ouput directory" << std::endl;
         break;
     case Command::UNKNOWN:
     default:
@@ -434,7 +492,7 @@ void Application::commandDelete() {
 
 void Application::commandID() {
     if (buffer.size() < 2) {
-        error::raise(error::code::MISSING_PARAMETER); 
+        error::raise(error::code::MISSING_PARAMETER);
         printHelp(Command::ID);
         return;
     }
@@ -569,4 +627,77 @@ void Application::commandSet() {
         Database::SetStatus(id, s);
     }
     else error::raise(("unknown parameter: " + param).c_str());
+}
+
+void Application::commandExport(int id) {
+    bool successMessage = false;
+
+    if (id == -1) {
+        successMessage = true;
+
+        if (buffer.size() == 1) {
+            error::raise(error::code::MISSING_PARAMETER, "id");
+            printHelp(Command::EXPORT);
+            return;
+        }
+
+        std::string _id = buffer.at(1);
+        try {
+            id = stoi(_id);
+        }
+        catch(const std::exception& e) {
+            error::raise(error::code::INVALID_ID);
+            return;
+        }
+    }
+    
+    Entity e = Database::Get(id);
+
+    if (Database::error != error::code::NONE) {
+        error::raise(Database::error);
+        return;
+    }
+
+    json data = {
+        {"firstname", ""},
+        {"lastname", ""},
+        {"username", ""},
+        {"age", -1},
+        {"birthday", ""},
+        {"status", 2}
+    };
+
+    data["firstname"]   = e.firstname;
+    data["lastname"]    = e.lastname;
+    data["username"]    = e.username;
+    data["age"]         = e.age;
+    data["birthday"]    = e.birthday;
+    data["status"]      = e.status;
+
+
+    std::string filepath = outputDir + std::to_string(id) + " " + e.formatted_name+".json";
+    for (unsigned int i = 0; i < filepath.size(); i++)
+        if (filepath[i] == ' ') filepath[i] = '_';
+        else filepath[i] = tolower(filepath[i]);
+
+    std::ofstream outfile(filepath);
+    outfile << std::setw(2) << data << std::endl;
+    outfile.close();
+
+    if (successMessage)
+        std::cout << "successfully exported element " << id << std::endl;
+}
+
+void Application::commandExportAll() {
+    std::vector<int> ids = Database::ListIDs();
+
+    for (int id : ids) commandExport(id);
+
+    std::cout << "successfully exported all elements!" << std::endl;
+}
+
+void Application::commandOutput() {
+    int rc = std::system((OPEN_CMD + outputDir).c_str());
+    if (rc != 0)
+        error::raise(error::code::CANNOT_OPEN_FOLDER);
 }

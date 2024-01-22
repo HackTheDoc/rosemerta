@@ -34,10 +34,15 @@ namespace error {
             hue::print("unknown command: ");
             hue::println(buff);
             break;
+        case code::UNKNOWN_PARAMETER:
+            hue::print("unknown ");
+            hue::print(buff);
+            hue::println(" parameter");
+            break;
         case code::MISSING_PARAMETER:
             hue::print("missing ");
             hue::print(buff);
-            hue::print(" parameter(s)");
+            hue::println(" parameter(s)");
             break;
         case code::INVALID_ID:
             hue::println("invalid id");

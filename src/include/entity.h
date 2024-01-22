@@ -17,6 +17,7 @@ struct Entity {
     int age{ -1 };
     std::string birthday{ "" };
     Status status{ Status::UNKNOWN };
+    std::vector<std::string> notes{};
 };
 
 Entity::Status to_status(const int s);

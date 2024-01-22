@@ -24,6 +24,8 @@ public:
         GET,
 
         SET,
+        ADD,
+        REMOVE,
 
         EXPORT,
         EXPORT_ALL,
@@ -83,6 +85,8 @@ private:
     void commandGet();
 
     void commandSet();
+    void commandAdd();
+    void commandRemove();
 
     void commandExport(int id = -1);
     void commandExportAll();

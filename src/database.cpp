@@ -77,6 +77,17 @@ bool Database::Create() {
         return false;
     }
 
+    const char* tableNotes =
+        "CREATE TABLE IF NOT EXISTS 'notes' ( "
+        "'id' INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,"
+        "'owner_id' INTEGER,"
+        "'text' TEXT"
+        ");";
+    if (sqlite3_exec(db, tableNotes, nullptr, nullptr, nullptr) != SQLITE_OK) {
+        error = error::code::CANNOT_CREATE_DATABASE;
+        return false;
+    }
+
     error = error::code::NONE;
     return true;
 }
@@ -417,6 +428,27 @@ Entity Database::Get(const int id) {
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
+#pragma region GET NOTES   
+    rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return p;
+    }
+
+    query = "SELECT * FROM notes WHERE owner_id = ?;";
+    sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        std::string n = (const char*)sqlite3_column_text(stmt, 2);
+        p.notes.push_back(n);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+#pragma endregion 
+
     error = error::code::NONE;
     return p;
 }
@@ -594,7 +626,7 @@ bool Database::SetStatus(const int id, const Entity::Status v) {
         return false;
     }
 
-    const char* query = "UPDATE identities SET alive = ? WHERE id = ?";
+    const char* query = "UPDATE identities SET status = ? WHERE id = ?";
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
@@ -613,6 +645,119 @@ bool Database::SetStatus(const int id, const Entity::Status v) {
 
     error = error::code::NONE;
     return true;
+}
+
+bool Database::AddNote(const int id, const std::string& text) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return false;
+    }
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::INVALID_ID;
+        return false;
+    }
+
+    const char* query = "INSERT INTO notes (owner_id, text) VALUES (?, ?);";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_text(stmt, 2, text.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    error = error::code::NONE;
+    return true;
+}
+
+std::string Database::RemoveNote(int id, int index) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return "";
+    }
+
+    int noteID = -1;
+    std::string note;
+
+#pragma region FETCH NOTE REAL ID
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return "";
+    }
+
+    const char* query = "SELECT * FROM notes WHERE owner_id = ?;";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    int i = 1;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        if (i == index) {
+            noteID = sqlite3_column_int(stmt, 0);
+            note = (const char*)sqlite3_column_text(stmt, 2);
+        }
+        else i++;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    error = error::code::NONE;
+#pragma endregion
+
+    if (noteID == -1) return "";
+
+#pragma region REMOVE NOTE
+    rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return "";
+    }
+
+    query = "DELETE FROM notes WHERE id = ?;";
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return "";
+    }
+
+    sqlite3_bind_int(stmt, 1, noteID);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return "";
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+    error = error::code::NONE;
+#pragma endregion
+
+    return note;
 }
 
 bool Database::ExistID(const int id) {

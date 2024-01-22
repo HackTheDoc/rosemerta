@@ -13,13 +13,13 @@ using json = nlohmann::json;
 #include <unistd.h>
 
 #ifdef _WIN32 // Windows
-    #include <direct.h>
-    #define MKDIR(dir) _mkdir(dir)
-    #define OPEN_CMD "start "
+#include <direct.h>
+#define MKDIR(dir) _mkdir(dir)
+#define OPEN_CMD "start "
 #else // POSIX (Linux, macOS, etc.)
-    #include <sys/stat.h>
-    #define MKDIR(dir) mkdir(dir, 0777)
-    #define OPEN_CMD "open "
+#include <sys/stat.h>
+#define MKDIR(dir) mkdir(dir, 0777)
+#define OPEN_CMD "open "
 #endif
 
 bool isValidDate(const char* date) {
@@ -66,6 +66,11 @@ const std::unordered_map<std::string, Application::Command> Application::STRING_
 
     {"set"          , Command::SET                      },
 
+    {"add"          , Command::ADD                      },
+
+    {"remove"       , Command::REMOVE                   },
+    {"rm"           , Command::REMOVE                   },
+
     // exportations cmds    
     {"export"       , Application::Command::EXPORT      },
 
@@ -97,7 +102,7 @@ void Application::start() {
     outputDir = "/tmp/rosemerta-output/";
     if (homeDir) {
         std::string home(homeDir);
-        outputDir = home+"/.rosemerta/output/";
+        outputDir = home + "/.rosemerta/output/";
     }
     if (!std::filesystem::exists(outputDir)) MKDIR(outputDir.c_str());
 
@@ -185,6 +190,12 @@ void Application::eval(const std::string& input) {
     case Command::SET:
         commandSet();
         break;
+    case Command::ADD:
+        commandAdd();
+        break;
+    case Command::REMOVE:
+        commandRemove();
+        break;
     case Command::EXPORT:
         commandExport();
         break;
@@ -271,6 +282,8 @@ void Application::commandHelp() {
     std::cout << "  delete <id>" << std::endl;
     std::cout << "  id <name>" << std::endl;
     std::cout << "  get <id>" << std::endl;
+    std::cout << "  add <id> note <note>" << std::endl;
+    std::cout << "  remove <id> note <index>" << std::endl;
 
     std::cout << "  set <id> <param> <value>" << std::endl;
 
@@ -312,6 +325,13 @@ void Application::printHelp(const Command c) {
         break;
     case Command::GET:
         std::cout << "get <id>      Get an element based on its id" << std::endl;
+        break;
+    case Application::Command::ADD:
+        std::cout << "add <id> note <id> Add a note to the identity (must be in \"\")" << std::endl;
+        break;
+    case Application::Command::REMOVE:
+        std::cout << "remove <id> note <index>              Remove one of the notes of an entity based on it's index" << std::endl;
+        std::cout << "index can be found when you get the identity data (either fully or partially)" << std::endl;
         break;
     case Command::SET:
         std::cout << "set <id> <param> <value>" << std::endl;
@@ -552,16 +572,23 @@ void Application::commandGet() {
 
     std::cout << "  status  : ";
     switch (p.status) {
-    case true:
+    case Entity::Status::ALIVE:
         hue::println("alive", hue::color::GREEN);
         break;
-    case false:
+    case Entity::Status::DEAD:
         hue::println("dead", hue::color::RED);
         break;
     default:
         hue::println("unknown", hue::color::LIGHT_GRAY);
         break;
     }
+
+    if (!p.notes.empty()) {
+        std::cout << "  notes   :" << std::endl;;
+        for (unsigned int i = 0; i < p.notes.size(); i++)
+            std::cout << "    " << i + 1 << ". " << p.notes[i] << std::endl;
+    }
+
 }
 
 void Application::commandSet() {
@@ -607,26 +634,92 @@ void Application::commandSet() {
     }
     else if (param == "status") {
         Entity::Status s = Entity::Status::UNKNOWN;
-        int v;
-        try {
-            v = stoi(value);
-        }
-        catch (const std::exception& e) {
-            v = -1;
-            return;
-        }
 
-        if (value == "alive" || v == true) s = Entity::Status::ALIVE;
-        else if (value == "dead" || v == false) s = Entity::Status::DEAD;
-        else if (value == "unknown" || v == -1) s = Entity::Status::UNKNOWN;
+        if      (value == "alive"   || value == "true"  || value == "t") 
+            s = Entity::Status::ALIVE;
+        else if (value == "dead"    || value == "false" || value == "f") 
+            s = Entity::Status::DEAD;
+        else if (value == "unknown" || value == "-1"    || value == "u") 
+            s = Entity::Status::UNKNOWN;
         else {
             Warning("unknown value \"" + value + "\"");
             return;
         }
-
+        
         Database::SetStatus(id, s);
     }
     else error::raise(("unknown parameter: " + param).c_str());
+}
+
+void Application::commandAdd() {
+    if (buffer.size() < 3) {
+        error::raise(error::code::MISSING_PARAMETER);
+        printHelp(Command::ADD);
+        return;
+    }
+
+    int id = -1;
+    try {
+        id = stoi(buffer.at(1));
+    }
+    catch (const std::exception& e) {
+        error::raise(error::code::INVALID_ID);
+        return;
+    }
+
+    std::string param = buffer.at(2);
+
+    if (param == "note") {
+        std::string value;
+        if (buffer.size() > 3)
+            value = buffer.at(3);
+        else {
+            std::cout << "please enter the note :" << std::endl;
+            std::getline(std::cin, value);
+        }
+        Database::AddNote(id, value);
+    }
+    else error::raise(error::code::UNKNOWN_PARAMETER, param.c_str());
+}
+
+void Application::commandRemove() {
+    if (buffer.size() < 4) {
+        error::raise(error::code::MISSING_PARAMETER);
+        printHelp(Command::REMOVE);
+        return;
+    }
+
+    int id = -1;
+    try {
+        id = stoi(buffer.at(1));
+    }
+    catch (const std::exception& e) {
+        error::raise(error::code::INVALID_ID);
+        return;
+    }
+
+    std::string param = buffer.at(2);
+
+    if (param == "note") {
+        int index;
+        try {
+            index = stoi(buffer.at(3));
+        }
+        catch (const std::exception& e) {
+            error::raise("invalid note index");
+            return;
+        }
+
+        std::string note = Database::RemoveNote(id, index);
+        if (note.empty()) {
+            error::raise(("unable to remove note indexed at " + buffer.at(3)).c_str());
+        }
+        else {
+            std::cout << "sucessfully removed note:" << std::endl;
+            std::cout << note << std::endl;
+        }
+    }
+    else error::raise(error::code::UNKNOWN_PARAMETER, param.c_str());
 }
 
 void Application::commandExport(int id) {
@@ -645,12 +738,12 @@ void Application::commandExport(int id) {
         try {
             id = stoi(_id);
         }
-        catch(const std::exception& e) {
+        catch (const std::exception& e) {
             error::raise(error::code::INVALID_ID);
             return;
         }
     }
-    
+
     Entity e = Database::Get(id);
 
     if (Database::error != error::code::NONE) {
@@ -659,23 +752,16 @@ void Application::commandExport(int id) {
     }
 
     json data = {
-        {"firstname", ""},
-        {"lastname", ""},
-        {"username", ""},
-        {"age", -1},
-        {"birthday", ""},
-        {"status", 2}
+        {"firstname", e.firstname},
+        {"lastname", e.lastname},
+        {"username", e.username},
+        {"age", e.age},
+        {"birthday", e.birthday},
+        {"status", e.status},
+        {"notes", e.notes}
     };
 
-    data["firstname"]   = e.firstname;
-    data["lastname"]    = e.lastname;
-    data["username"]    = e.username;
-    data["age"]         = e.age;
-    data["birthday"]    = e.birthday;
-    data["status"]      = e.status;
-
-
-    std::string filepath = outputDir + std::to_string(id) + " " + e.formatted_name+".json";
+    std::string filepath = outputDir + std::to_string(id) + " " + e.formatted_name + ".json";
     for (unsigned int i = 0; i < filepath.size(); i++)
         if (filepath[i] == ' ') filepath[i] = '_';
         else filepath[i] = tolower(filepath[i]);

@@ -57,6 +57,9 @@ public:
     static bool SetBirthday(const int id, const std::string& v);
     static bool SetStatus(const int id, const Entity::Status v);
 
+    static bool AddNote(const int id, const std::string& text);
+    static std::string RemoveNote(const int id, const int index);
+
 private:
     static fs::path path;
     static sqlite3* db;

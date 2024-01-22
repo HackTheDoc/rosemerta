@@ -15,6 +15,7 @@ namespace error {
         SQL,
 
         UNKNOWN_COMMAND,
+        UNKNOWN_PARAMETER,
         MISSING_PARAMETER,
 
         INVALID_ID

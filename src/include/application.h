@@ -15,23 +15,15 @@ public:
         EXIT,
         CLEAR,
 
-        SAVE,
         SIZE,
+        LIST,
 
-        CATALOG,
-        CONTACTS,
-        ID,
-
-        SET,
-        CREATE,
-        ADD,
-        ADD_CONTACT,
-        ADD_NOTE,
-
+        NEW,
         DELETE,
-        REMOVE,
-        REMOVE_CONTACT,
-        REMOVE_NOTE
+        ID,
+        GET,
+
+        SET
     };
 
     static const std::string version;
@@ -45,10 +37,6 @@ public:
     void run();
 
     void kill();
-
-    /// @brief display an error
-    /// @param e 
-    static void Error(const std::string& e);
 
     /// @brief display a warning
     /// @param w 
@@ -75,9 +63,18 @@ private:
 
     // all the functions associated to a specific command
     void commandHelp();
+    void printHelp(const Command c);
     void commandVersion();
     void commandExit();
     void commandClear();
 
     void commandSize();
+    void commandList();
+
+    void commandNew();
+    void commandDelete();
+    void commandID();
+    void commandGet();
+
+    void commandSet();
 };

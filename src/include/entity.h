@@ -3,6 +3,34 @@
 #include <string>
 #include <vector>
 
+struct Contact {
+    enum Type {
+        INVALID,
+
+        UNKNOWN,
+
+        EMAIL,
+        PHONE_NUMBER,
+
+        DISCORD,
+        INSTAGRAM,
+        SNAPCHAT,
+        TWITTER,
+        TELEGRAM,
+        BEREAL
+    };
+    Type t{ Type::UNKNOWN };
+    std::string u{ "" };
+    std::string p{ "" };
+};
+
+std::string to_string(const Contact c);
+std::string to_string(const Contact::Type t);
+
+Contact::Type to_contact_type(const int t);
+
+Contact::Type to_contact_type(const std::string& t);
+
 struct Entity {
     enum Status {
         ALIVE,
@@ -17,6 +45,7 @@ struct Entity {
     int age{ -1 };
     std::string birthday{ "" };
     Status status{ Status::UNKNOWN };
+    std::vector<Contact> contacts{};
     std::vector<std::string> notes{};
 };
 

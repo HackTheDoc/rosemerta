@@ -67,12 +67,25 @@ bool Database::Create() {
         "'id' INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,"
         "'firstname' TEXT,"
         "'lastname' TEXT,"
-        "'username' TEXT,"
+        "'nickname' TEXT,"
         "'age' INTEGER,"
         "'birthday' TEXT,"
         "'status' INTEGER"
         ");";
     if (sqlite3_exec(db, tableIdentities, nullptr, nullptr, nullptr) != SQLITE_OK) {
+        error = error::code::CANNOT_CREATE_DATABASE;
+        return false;
+    }
+
+    const char* tableContacts =
+        "CREATE TABLE IF NOT EXISTS 'contacts' ( "
+        "'id' INTEGER UNIQUE NOT NULL PRIMARY KEY AUTOINCREMENT,"
+        "'owner_id' INTEGER,"
+        "'type' INTEGER,"
+        "'username' TEXT,"
+        "'password' TEXT"
+        ");";
+    if (sqlite3_exec(db, tableContacts, nullptr, nullptr, nullptr) != SQLITE_OK) {
         error = error::code::CANNOT_CREATE_DATABASE;
         return false;
     }
@@ -121,7 +134,7 @@ std::vector<std::pair<int, std::string>> Database::List(int page) {
         return buffer;
     }
 
-    const char* query = "SELECT id, firstname, lastname, username FROM identities ORDER BY id ASC";
+    const char* query = "SELECT id, firstname, lastname, nickname FROM identities ORDER BY id ASC";
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
 
@@ -133,11 +146,11 @@ std::vector<std::pair<int, std::string>> Database::List(int page) {
         if (i < imin) i++;
         else {
             int id = sqlite3_column_int(stmt, 0);
-            std::string firstname = (const char*)sqlite3_column_text(stmt, 1);
-            std::string lastname = (const char*)sqlite3_column_text(stmt, 2);
-            std::string username = (const char*)sqlite3_column_text(stmt, 3);
+            std::string firstname   = (const char*)sqlite3_column_text(stmt, 1);
+            std::string lastname    = (const char*)sqlite3_column_text(stmt, 2);
+            std::string nickname    = (const char*)sqlite3_column_text(stmt, 3);
 
-            buffer.push_back(std::make_pair(id, naming(firstname, lastname, username)));
+            buffer.push_back(std::make_pair(id, naming(firstname, lastname, nickname)));
 
             i++;
         }
@@ -173,7 +186,7 @@ std::vector<int> Database::ListIDs() {
     return buffer;
 }
 
-int Database::Insert(const std::string& firstname, const std::string& lastname, const std::string& username) {
+int Database::Insert(const std::string& firstname, const std::string& lastname, const std::string& nickname) {
 #pragma region INSERTION
     int rc = sqlite3_open(path.c_str(), &db);
     if (rc != SQLITE_OK) {
@@ -181,7 +194,7 @@ int Database::Insert(const std::string& firstname, const std::string& lastname, 
         return -1;
     }
 
-    const char* query = "INSERT INTO identities (firstname, lastname, username, age, birthday, status) VALUES (?,?,?,?,?,?);";
+    const char* query = "INSERT INTO identities (firstname, lastname, nickname, age, birthday, status) VALUES (?,?,?,?,?,?);";
     sqlite3_stmt* stmt;
     rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
@@ -192,7 +205,7 @@ int Database::Insert(const std::string& firstname, const std::string& lastname, 
 
     sqlite3_bind_text(stmt, 1, firstname.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_text(stmt, 2, lastname.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, username.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, nickname.c_str(), -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 4, -1);
     sqlite3_bind_text(stmt, 5, "", -1, SQLITE_STATIC);
     sqlite3_bind_int(stmt, 6, Entity::Status::UNKNOWN);
@@ -428,6 +441,8 @@ Entity Database::Get(const int id) {
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
+    p.contacts = GetContacts(id);
+
 #pragma region GET NOTES   
     rc = sqlite3_open(path.c_str(), &db);
     if (rc != SQLITE_OK) {
@@ -451,6 +466,41 @@ Entity Database::Get(const int id) {
 
     error = error::code::NONE;
     return p;
+}
+
+std::vector<Contact> Database::GetContacts(const int id) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return {};
+    }
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return {};
+    }
+
+    const char* query = "SELECT * FROM contacts WHERE owner_id = ? ORDER BY type ASC;";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    std::vector<Contact> contacts;
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        Contact c{
+            to_contact_type(sqlite3_column_int(stmt, 2)),
+            (const char*)sqlite3_column_text(stmt, 3),
+            (const char*)sqlite3_column_text(stmt, 4)
+        };
+        contacts.push_back(c);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return contacts;
 }
 
 bool Database::SetFirstname(const int id, const std::string& v) {
@@ -520,7 +570,7 @@ bool Database::SetLastname(const int id, const std::string& v) {
     return true;
 }
 
-bool Database::SetUsername(const int id, const std::string& v) {
+bool Database::SetNickname(const int id, const std::string& v) {
     if (!ExistID(id)) {
         error = error::code::INVALID_ID;
         return false;
@@ -532,7 +582,7 @@ bool Database::SetUsername(const int id, const std::string& v) {
         return false;
     }
 
-    const char* query = "UPDATE identities SET username = ? WHERE id = ?";
+    const char* query = "UPDATE identities SET nickname = ? WHERE id = ?";
     sqlite3_stmt* stmt;
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
 
@@ -645,6 +695,126 @@ bool Database::SetStatus(const int id, const Entity::Status v) {
 
     error = error::code::NONE;
     return true;
+}
+
+bool Database::AddContact(const int id, const Contact::Type type, const std::string& username, const std::string& password) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return false;
+    }
+
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::INVALID_ID;
+        return false;
+    }
+
+
+    const char* query = "INSERT INTO contacts (owner_id, type, username, password) VALUES (?, ?, ?, ?);";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        error = error::code::SQL;
+        return false;
+    }
+
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_int(stmt, 2, type);
+    sqlite3_bind_text(stmt, 3, username.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 4, password.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    error = error::code::NONE;
+    return true;
+}
+
+Contact Database::RemoveContact(const int id, const Contact::Type type, const int index) {
+    Contact contact;
+
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return contact;
+    }
+
+    int contactID = -1;
+
+#pragma region FETCH CONTACT REAL ID
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return contact;
+    }
+
+    const char* query = "SELECT * FROM contacts WHERE owner_id = ? AND type = ?;";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return contact;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_int(stmt, 2, type);
+
+    int i = 1;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        if (i == index) {
+            contactID = sqlite3_column_int(stmt, 0);
+            contact.u = (const char*)sqlite3_column_text(stmt, 3);
+            contact.p = (const char*)sqlite3_column_text(stmt, 4);
+        }
+        else i++;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+#pragma endregion
+
+    error = error::code::INVALID_ID;
+    if (contactID == -1) return contact;
+
+#pragma region REMOVE CONTACT
+    rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return contact;
+    }
+
+    query = "DELETE FROM contacts WHERE id = ?;";
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return contact;
+    }
+
+    sqlite3_bind_int(stmt, 1, contactID);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return contact;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+#pragma endregion
+
+    error = error::code::NONE;
+    return contact;
 }
 
 bool Database::AddNote(const int id, const std::string& text) {

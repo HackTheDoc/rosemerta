@@ -22,6 +22,7 @@ public:
         DELETE,
         ID,
         GET,
+        CONTACTS,
 
         SET,
         ADD,
@@ -83,6 +84,7 @@ private:
     void commandDelete();
     void commandID();
     void commandGet();
+    void commandContacts();
 
     void commandSet();
     void commandAdd();

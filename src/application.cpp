@@ -30,7 +30,7 @@ bool isValidDate(const char* date) {
     return false;
 }
 
-const std::string Application::version = "1.0";
+const std::string Application::version = "1.1";
 bool Application::isRunning = false;
 
 const std::unordered_map<std::string, Application::Command> Application::STRING_TO_COMMAND = {
@@ -187,6 +187,9 @@ void Application::eval(const std::string& input) {
     case Command::GET:
         commandGet();
         break;
+    case Command::CONTACTS:
+        commandContacts();
+        break;
     case Command::SET:
         commandSet();
         break;
@@ -282,10 +285,13 @@ void Application::commandHelp() {
     std::cout << "  delete <id>" << std::endl;
     std::cout << "  id <name>" << std::endl;
     std::cout << "  get <id>" << std::endl;
-    std::cout << "  add <id> note <note>" << std::endl;
-    std::cout << "  remove <id> note <index>" << std::endl;
+    std::cout << "  contacts <id>" << std::endl;
 
     std::cout << "  set <id> <param> <value>" << std::endl;
+    std::cout << "  add <id> note <note>" << std::endl;
+    std::cout << "           contact <type> <contact>" << std::endl;
+    std::cout << "  remove <id> note <index>" << std::endl;
+    std::cout << "              contact <index>" << std::endl;
 
     std::cout << std::endl;
 
@@ -326,11 +332,16 @@ void Application::printHelp(const Command c) {
     case Command::GET:
         std::cout << "get <id>      Get an element based on its id" << std::endl;
         break;
+    case Application::Command::CONTACTS:
+        std::cout << "contacts <id>   Get the contacts of an element" << std::endl;
+        break;
     case Application::Command::ADD:
-        std::cout << "add <id> note <id> Add a note to the identity (must be in \"\")" << std::endl;
+        std::cout << "add <id> note <id>                            Add a note to the identity (must be in \"\")" << std::endl;
+        std::cout << "         contact [type] [username] [password] Add a contact to the identiy" << std::endl;
         break;
     case Application::Command::REMOVE:
         std::cout << "remove <id> note <index>              Remove one of the notes of an entity based on it's index" << std::endl;
+        std::cout << "            contact <type> <index>    Remove one of the contact of an entity based on it's type and title" << std::endl;
         std::cout << "index can be found when you get the identity data (either fully or partially)" << std::endl;
         break;
     case Command::SET:
@@ -380,7 +391,7 @@ void Application::commandClear() {
 #endif
 
     std::cout << " _______________________________________________" << std::endl;
-    std::cout << "|  ____  _____ ____  ____   ___  _   _    _ v1.0|" << std::endl;
+    std::cout << "|  ____  _____ ____  ____   ___  _   _    _ v" << version << "|" << std::endl;
     std::cout << "| |  _ \\| ____|  _ \\/ ___| / _ \\| \\ | |  / \\    |" << std::endl;
     std::cout << "| | |_) |  _| | |_) \\___ \\| | | |  \\| | / _ \\   |" << std::endl;
     std::cout << "| |  __/| |___|  _ < ___) | |_| | |\\  |/ ___ \\  |" << std::endl;
@@ -413,10 +424,10 @@ void Application::commandList() {
 void Application::commandNew() {
     Warning("use '-1' value to set to unknown");
 
-    std::cout << "  username: ";
-    std::string username;
-    std::getline(std::cin, username);
-    if (username == "-1") username = "";
+    std::cout << "  nickname: ";
+    std::string nickname;
+    std::getline(std::cin, nickname);
+    if (nickname == "-1") nickname = "";
 
     std::cout << "  firstname: ";
     std::string firstname;
@@ -468,7 +479,7 @@ void Application::commandNew() {
         return;
     }
 
-    int id = Database::Insert(firstname, lastname, username);
+    int id = Database::Insert(firstname, lastname, nickname);
 
     if (id == -1) {
         error::raise(Database::error);
@@ -583,12 +594,72 @@ void Application::commandGet() {
         break;
     }
 
+    if (!p.contacts.empty()) {
+        std::cout << "  contacts:" << std::endl;
+
+        Contact::Type currentType = Contact::Type::INVALID;
+        int index = 1;
+        for (unsigned int i = 0; i < p.contacts.size(); i++) {
+            auto c = p.contacts[i];
+
+            if (c.t != currentType) {
+                currentType = c.t;
+                index = 1;
+                std::cout << "  - " << to_string(c.t) << ":" << std::endl;
+            }
+
+            std::cout << "    " << index << ". " << to_string(c) << std::endl;
+
+            index++;
+        }
+    }
+
     if (!p.notes.empty()) {
         std::cout << "  notes   :" << std::endl;;
         for (unsigned int i = 0; i < p.notes.size(); i++)
             std::cout << "    " << i + 1 << ". " << p.notes[i] << std::endl;
     }
 
+}
+
+void Application::commandContacts() {
+    if (buffer.size() < 2) {
+        error::raise(error::code::MISSING_PARAMETER, "id");
+        printHelp(Command::CONTACTS);
+        return;
+    }
+
+    int id = -1;
+    try {
+        id = stoi(buffer.at(1));
+    }
+    catch (const std::exception& e) {
+        error::raise(error::code::INVALID_ID);
+        return;
+    }
+
+    std::vector<Contact> contacts = Database::GetContacts(id);
+
+    if (contacts.empty())
+        std::cout << "no registered contact for element " << id << std::endl;
+    else {
+        std::cout << "contacts of " << id << ":" << std::endl;
+        Contact::Type currentType = Contact::Type::INVALID;
+        int index = 1;
+        for (unsigned int i = 0; i < contacts.size(); i++) {
+            auto c = contacts[i];
+
+            if (c.t != currentType) {
+                currentType = c.t;
+                index = 1;
+                std::cout << "  - " << to_string(c.t) << ":" << std::endl;
+            }
+
+            std::cout << "    " << index << ". " << to_string(c) << std::endl;
+
+            index++;
+        }
+    }
 }
 
 void Application::commandSet() {
@@ -609,9 +680,9 @@ void Application::commandSet() {
     std::string param = buffer.at(2);
     std::string value = buffer.at(3);
 
-    if (param == "username" || param == "uname")
-        if (value == "-1") Database::SetUsername(id, "");
-        else Database::SetUsername(id, value);
+    if (param == "nickname" || param == "nname")
+        if (value == "-1") Database::SetNickname(id, "");
+        else Database::SetNickname(id, value);
     else if (param == "firstname" || param == "fname")
         if (value == "-1") Database::SetFirstname(id, "");
         else Database::SetFirstname(id, value);
@@ -635,17 +706,17 @@ void Application::commandSet() {
     else if (param == "status") {
         Entity::Status s = Entity::Status::UNKNOWN;
 
-        if      (value == "alive"   || value == "true"  || value == "t") 
+        if (value == "alive" || value == "true" || value == "t")
             s = Entity::Status::ALIVE;
-        else if (value == "dead"    || value == "false" || value == "f") 
+        else if (value == "dead" || value == "false" || value == "f")
             s = Entity::Status::DEAD;
-        else if (value == "unknown" || value == "-1"    || value == "u") 
+        else if (value == "unknown" || value == "-1" || value == "u")
             s = Entity::Status::UNKNOWN;
         else {
             Warning("unknown value \"" + value + "\"");
             return;
         }
-        
+
         Database::SetStatus(id, s);
     }
     else error::raise(("unknown parameter: " + param).c_str());
@@ -669,7 +740,64 @@ void Application::commandAdd() {
 
     std::string param = buffer.at(2);
 
-    if (param == "note") {
+    if (param == "contact") {
+        Contact::Type t;
+        std::string u, p;
+        // manual parsing of the contact
+        if (buffer.size() < 4) {
+            do {
+                std::cout << "  type: ";
+                std::string rawt;
+                std::getline(std::cin, rawt);
+                t = to_contact_type(rawt);
+                if (t == Contact::Type::INVALID) {
+                    Warning("");
+                    std::cout << "contact must be one of: "
+                        << "unknown, "
+                        << "email, "
+                        << "phone number, "
+                        << "discord, "
+                        << "instagram, "
+                        << "snapchat, "
+                        << "twitter, "
+                        << "telegram, "
+                        << "bereal"
+                        << std::endl;
+                }
+            } while (t == Contact::Type::INVALID);
+
+            std::cout << "  username: ";
+            std::getline(std::cin, u);
+
+            std::cout << "  password: ";
+            std::getline(std::cin, p);
+
+            std::cout << "  valid? (y/n) ";
+            std::string validation;
+            std::cin >> validation;
+            for (int i = 0; i < (int)validation.size(); i++)
+                validation[i] = tolower(validation[i]);
+            if (validation != "y" && validation != "yes") {
+                Warning("aborted");
+                return;
+            }
+        }
+
+        // automatic parsing
+        else {
+            t = to_contact_type(buffer.at(3));
+
+            u = buffer.at(4);
+
+            p = "";
+            if (buffer.size() > 5) {
+                p = buffer.at(5);
+            }
+        }
+
+        Database::AddContact(id, t, u, p);
+    }
+    else if (param == "note") {
         std::string value;
         if (buffer.size() > 3)
             value = buffer.at(3);
@@ -700,7 +828,29 @@ void Application::commandRemove() {
 
     std::string param = buffer.at(2);
 
-    if (param == "note") {
+    if (param == "contact") {
+        if (buffer.size() < 5) {
+            error::raise(error::code::MISSING_PARAMETER);
+            std::cout << "remove <id> contact <type> <index>" << std::endl;
+            return;
+        }
+
+        Contact::Type t = to_contact_type(buffer.at(3));
+
+        int index;
+        try {
+            index = stoi(buffer.at(4));
+        }
+        catch (const std::exception& e) {
+            error::raise("invalid contact index");
+            return;
+        }
+
+        Contact contact = Database::RemoveContact(id, t, index);
+        std::cout << "removed " << to_string(contact.t) << " contact:" << std::endl;
+        std::cout << to_string(contact) << std::endl;
+    }
+    else if (param == "note") {
         int index;
         try {
             index = stoi(buffer.at(3));

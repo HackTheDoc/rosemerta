@@ -37,25 +37,29 @@ public:
     /// @brief Insert a new element int the database (with just the name and/or username)
     /// @param firsname
     /// @param lastname
-    /// @param username
+    /// @param nickname
     /// @return id of the inserted item (-1 if failed to insert);
-    static int Insert(const std::string& firstname, const std::string& lastname, const std::string& username);
+    static int Insert(const std::string& firstname, const std::string& lastname, const std::string& nickname);
 
     static bool Delete(const int id);
 
-    /// @brief Find the ID associated with a given name or username
-    /// @param name name or username (or part of it at least)
+    /// @brief Find the ID associated with a given name or nickname
+    /// @param name name or nickname (or part of it at least)
     /// @return a set containing possibly associated IDs
     static std::set<int> Find(std::string name);
 
     static Entity Get(const int id);
+    static std::vector<Contact> GetContacts(const int id);
 
     static bool SetFirstname(const int id, const std::string& v);
     static bool SetLastname(const int id, const std::string& v);
-    static bool SetUsername(const int id, const std::string& v);
+    static bool SetNickname(const int id, const std::string& v);
     static bool SetAge(const int id, const int v);
     static bool SetBirthday(const int id, const std::string& v);
     static bool SetStatus(const int id, const Entity::Status v);
+
+    static bool AddContact(const int id, const Contact::Type type, const std::string& username, const std::string& password);
+    static Contact RemoveContact(const int id, const Contact::Type type, const int index);
 
     static bool AddNote(const int id, const std::string& text);
     static std::string RemoveNote(const int id, const int index);

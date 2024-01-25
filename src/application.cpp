@@ -30,6 +30,26 @@ bool isValidDate(const char* date) {
     return false;
 }
 
+void to_lower(std::string& s) {
+    for (char& c : s)
+        c = tolower(c);
+}
+
+void to_upper(std::string& s) {
+    for (char& c : s)
+        c = toupper(c);
+}
+
+void to_title(std::string& s) {
+    if (s.empty()) return;
+
+    for (char& c : s)
+        c = tolower(c);
+
+    s[0] = toupper(s[0]);
+}
+
+/* ----- APPLICATION CLASS ----- */
 const std::string Application::version = "1.1";
 bool Application::isRunning = false;
 
@@ -63,6 +83,8 @@ const std::unordered_map<std::string, Application::Command> Application::STRING_
     {"id"           , Command::ID                       },
 
     {"get"          , Command::GET                      },
+    {"addresses"    , Command::ADDRESSES                },
+    {"contacts"     , Command::CONTACTS                 },
 
     {"set"          , Command::SET                      },
 
@@ -187,6 +209,9 @@ void Application::eval(const std::string& input) {
     case Command::GET:
         commandGet();
         break;
+    case Command::ADDRESSES:
+        commandAddresses();
+        break;
     case Command::CONTACTS:
         commandContacts();
         break;
@@ -285,13 +310,16 @@ void Application::commandHelp() {
     std::cout << "  delete <id>" << std::endl;
     std::cout << "  id <name>" << std::endl;
     std::cout << "  get <id>" << std::endl;
+    std::cout << "  addresses <id>" << std::endl;
     std::cout << "  contacts <id>" << std::endl;
 
     std::cout << "  set <id> <param> <value>" << std::endl;
-    std::cout << "  add <id> note <note>" << std::endl;
-    std::cout << "           contact <type> <contact>" << std::endl;
-    std::cout << "  remove <id> note <index>" << std::endl;
-    std::cout << "              contact <index>" << std::endl;
+    std::cout << "  add <id> address" << std::endl;
+    std::cout << "           contact" << std::endl;
+    std::cout << "           note [note]" << std::endl;
+    std::cout << "  remove <id> address <title>" << std::endl;
+    std::cout << "              contact <type> <index>" << std::endl;
+    std::cout << "              note <index>" << std::endl;
 
     std::cout << std::endl;
 
@@ -332,16 +360,21 @@ void Application::printHelp(const Command c) {
     case Command::GET:
         std::cout << "get <id>      Get an element based on its id" << std::endl;
         break;
+    case Application::Command::ADDRESSES:
+        std::cout << "addresses <id>   Get the addresses of an element" << std::endl;
+        break;
     case Application::Command::CONTACTS:
         std::cout << "contacts <id>   Get the contacts of an element" << std::endl;
         break;
     case Application::Command::ADD:
-        std::cout << "add <id> note <id>                            Add a note to the identity (must be in \"\")" << std::endl;
-        std::cout << "         contact [type] [username] [password] Add a contact to the identiy" << std::endl;
+        std::cout << "add <id> address      Add an address to of the identiy" << std::endl;
+        std::cout << "         contact      Add a contact to the identiy" << std::endl;
+        std::cout << "         note <note>  Add a note to the identity (must be in \"\")" << std::endl;
         break;
     case Application::Command::REMOVE:
-        std::cout << "remove <id> note <index>              Remove one of the notes of an entity based on it's index" << std::endl;
+        std::cout << "remove <id> address <title>           Remove one of the addess of an entity based on it's title" << std::endl;
         std::cout << "            contact <type> <index>    Remove one of the contact of an entity based on it's type and title" << std::endl;
+        std::cout << "            note <index>              Remove one of the notes of an entity based on it's index" << std::endl;
         std::cout << "index can be found when you get the identity data (either fully or partially)" << std::endl;
         break;
     case Command::SET:
@@ -352,6 +385,7 @@ void Application::printHelp(const Command c) {
         std::cout << "          age [int]                         Set the element's age" << std::endl;
         std::cout << "          birthday [DD-MM-YY]               Set the element's birthday date" << std::endl;
         std::cout << "          status [alive || dead || unknown] Set wether the element is alive or not" << std::endl;
+        std::cout << "          address <title>                   Open a form to modify one of the address of the element" << std::endl;
         break;
     case Application::Command::EXPORT:
         std::cout << "export <id>   Export the profile of an element to an output directory located in the application files" << std::endl;
@@ -460,8 +494,7 @@ void Application::commandNew() {
     std::string r_alive;
     std::getline(std::cin, r_alive);
     Entity::Status alive = Entity::Status::UNKNOWN;
-    for (int i = 0; i < (int)r_alive.size(); i++)
-        r_alive[i] = tolower(r_alive[i]);
+    to_lower(r_alive);
     if (r_alive == "y" || r_alive == "yes") {
         alive = Entity::Status::ALIVE;
     }
@@ -472,8 +505,7 @@ void Application::commandNew() {
     std::cout << "  valid? (y/n) ";
     std::string validation;
     std::cin >> validation;
-    for (int i = 0; i < (int)validation.size(); i++)
-        validation[i] = tolower(validation[i]);
+    to_lower(validation);
     if (validation != "y" && validation != "yes") {
         Warning("aborted");
         return;
@@ -614,10 +646,44 @@ void Application::commandGet() {
         }
     }
 
+    if (!p.addresses.empty()) {
+        std::cout << "  address :"<< std::endl;
+        for (const Address& a : p.addresses)
+            std::cout << "    " << a.name << " : " << a.detail << std::endl;
+    }
+
     if (!p.notes.empty()) {
         std::cout << "  notes   :" << std::endl;;
         for (unsigned int i = 0; i < p.notes.size(); i++)
             std::cout << "    " << i + 1 << ". " << p.notes[i] << std::endl;
+    }
+
+}
+
+void Application::commandAddresses() {
+    if (buffer.size() < 2) {
+        error::raise(error::code::MISSING_PARAMETER, "id");
+        printHelp(Command::ADDRESSES);
+        return;
+    }
+
+    int id = -1;
+    try {
+        id = stoi(buffer.at(1));
+    }
+    catch (const std::exception& e) {
+        error::raise(error::INVALID_ID);
+        return;
+    }
+
+    std::vector<Address> addresses = Database::GetAddresses(id);
+
+    if (addresses.empty())
+        std::cout << "no registered address for element " << id << std::endl;
+    else {
+        std::cout << "addresses of " << id << ":" << std::endl;
+        for (const Address& a : addresses)
+            std::cout << "  " << a.name << " : " << a.detail << std::endl;
     }
 
 }
@@ -719,6 +785,65 @@ void Application::commandSet() {
 
         Database::SetStatus(id, s);
     }
+    else if (param == "address") {
+        if (!Database::ExistAddress(id, value)) {
+            error::raise("unknown address title");
+            return;
+        }
+
+        std::cout << "Address form:" << std::endl;
+
+        std::cout << "  country: ";
+        std::string country;
+        std::getline(std::cin, country);
+        to_upper(country);
+
+        std::cout << "  region: ";
+        std::string region;
+        std::getline(std::cin, region);
+        to_title(region);
+
+        std::cout << "  ZIP code: ";
+        std::string zipCode;
+        std::getline(std::cin, zipCode);
+        for (unsigned int i = 0; i < zipCode.size(); i++)
+            if (!isdigit(zipCode[i])) {
+                zipCode = "";
+                break;
+            }
+
+        std::cout << "  city: ";
+        std::string city;
+        std::getline(std::cin, city);
+        to_title(city);
+
+        std::cout << "  street: ";
+        std::string street;
+        std::getline(std::cin, street);
+        to_lower(street);
+
+        std::cout << "  number: ";
+        std::string number;
+        std::getline(std::cin, number);
+
+        std::cout << "  valid? (y/n) ";
+        std::string validation;
+        std::cin >> validation;
+        to_lower(validation);
+        if (validation != "y" && validation != "yes") {
+            Warning("aborted");
+            return;
+        }
+
+        std::string address = number + " " + street + ", " + zipCode + " " + city + " " + region + ", " + country;
+
+        if (address.size() <= 7) {
+            error::raise("invalid address input");
+            return;
+        }
+
+        Database::SetAddress(id, value, address);
+    }
     else error::raise(("unknown parameter: " + param).c_str());
 }
 
@@ -740,11 +865,70 @@ void Application::commandAdd() {
 
     std::string param = buffer.at(2);
 
-    if (param == "contact") {
+    if (param == "address") {
+        std::cout << "Address form:" << std::endl;
+
+        std::cout << "  title: ";
+        std::string title;
+        std::getline(std::cin, title);
+        to_lower(title);
+
+        std::cout << "  country: ";
+        std::string country;
+        std::getline(std::cin, country);
+        to_upper(country);
+
+        std::cout << "  region: ";
+        std::string region;
+        std::getline(std::cin, region);
+        to_title(region);
+
+        std::cout << "  ZIP code: ";
+        std::string zipCode;
+        std::getline(std::cin, zipCode);
+        for (unsigned int i = 0; i < zipCode.size(); i++)
+            if (!isdigit(zipCode[i])) {
+                zipCode = "";
+                break;
+            }
+
+        std::cout << "  city: ";
+        std::string city;
+        std::getline(std::cin, city);
+        to_title(city);
+
+        std::cout << "  street: ";
+        std::string street;
+        std::getline(std::cin, street);
+        to_lower(street);
+
+        std::cout << "  number: ";
+        std::string number;
+        std::getline(std::cin, number);
+
+        std::cout << "  valid? (y/n) ";
+        std::string validation;
+        std::cin >> validation;
+        to_lower(validation);
+        if (validation != "y" && validation != "yes") {
+            Warning("aborted");
+            return;
+        }
+
+        std::string address = number + " " + street + ", " + zipCode + " " + city + " " + region + ", " + country;
+
+        if (title.empty() || address.size() <= 7) {
+            error::raise("invalid address input");
+            return;
+        }
+        Database::AddAddress(id, title, address);
+    }
+    else if (param == "contact") {
         Contact::Type t;
         std::string u, p;
         // manual parsing of the contact
         if (buffer.size() < 4) {
+            std::cout << "Contact form:" << std::endl;
             do {
                 std::cout << "  type: ";
                 std::string rawt;
@@ -775,8 +959,7 @@ void Application::commandAdd() {
             std::cout << "  valid? (y/n) ";
             std::string validation;
             std::cin >> validation;
-            for (int i = 0; i < (int)validation.size(); i++)
-                validation[i] = tolower(validation[i]);
+            to_lower(validation);
             if (validation != "y" && validation != "yes") {
                 Warning("aborted");
                 return;
@@ -828,7 +1011,19 @@ void Application::commandRemove() {
 
     std::string param = buffer.at(2);
 
-    if (param == "contact") {
+    if (param == "address") {
+        std::string title = buffer.at(3);
+
+        std::string address = Database::RemoveAddress(id, title);
+        if (address.empty()) {
+            error::raise(("unable to remove address with title \"" + buffer.at(3) + "\"").c_str());
+        }
+        else {
+            std::cout << "sucessfully removed \"" << title << "\" address:" << std::endl;
+            std::cout << address << std::endl;
+        }
+    }
+    else if (param == "contact") {
         if (buffer.size() < 5) {
             error::raise(error::code::MISSING_PARAMETER);
             std::cout << "remove <id> contact <type> <index>" << std::endl;

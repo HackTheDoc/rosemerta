@@ -49,6 +49,7 @@ public:
     static std::set<int> Find(std::string name);
 
     static Entity Get(const int id);
+    static std::vector<Address> GetAddresses(const int id);
     static std::vector<Contact> GetContacts(const int id);
 
     static bool SetFirstname(const int id, const std::string& v);
@@ -57,6 +58,11 @@ public:
     static bool SetAge(const int id, const int v);
     static bool SetBirthday(const int id, const std::string& v);
     static bool SetStatus(const int id, const Entity::Status v);
+
+    static bool ExistAddress(const int id, const std::string& title);
+    static bool AddAddress(const int id, const std::string& title, const std::string& address);
+    static bool SetAddress(const int id, const std::string& title, const std::string& address);
+    static std::string RemoveAddress(const int id, const std::string& title);
 
     static bool AddContact(const int id, const Contact::Type type, const std::string& username, const std::string& password);
     static Contact RemoveContact(const int id, const Contact::Type type, const int index);

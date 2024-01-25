@@ -3,6 +3,11 @@
 #include <string>
 #include <vector>
 
+struct Address {
+    std::string name{ "" };
+    std::string detail{ "" };
+};
+
 struct Contact {
     enum Type {
         INVALID,
@@ -45,6 +50,7 @@ struct Entity {
     int age{ -1 };
     std::string birthday{ "" };
     Status status{ Status::UNKNOWN };
+    std::vector<Address> addresses{};
     std::vector<Contact> contacts{};
     std::vector<std::string> notes{};
 };

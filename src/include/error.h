@@ -18,6 +18,7 @@ namespace error {
         UNKNOWN_PARAMETER,
         MISSING_PARAMETER,
 
+        EXISTING_ADDRESS,
         INVALID_ID
     };
 

@@ -101,6 +101,17 @@ bool Database::Create() {
         return false;
     }
 
+    const char* tableAddresses =
+        "CREATE TABLE IF NOT EXISTS 'addresses' ( "
+        "'owner_id' INTEGER,"
+        "'title' TEXT,"
+        "'detail' TEXT"
+        ");";
+    if (sqlite3_exec(db, tableAddresses, nullptr, nullptr, nullptr) != SQLITE_OK) {
+        error = error::code::CANNOT_CREATE_DATABASE;
+        return false;
+    }
+
     error = error::code::NONE;
     return true;
 }
@@ -146,9 +157,9 @@ std::vector<std::pair<int, std::string>> Database::List(int page) {
         if (i < imin) i++;
         else {
             int id = sqlite3_column_int(stmt, 0);
-            std::string firstname   = (const char*)sqlite3_column_text(stmt, 1);
-            std::string lastname    = (const char*)sqlite3_column_text(stmt, 2);
-            std::string nickname    = (const char*)sqlite3_column_text(stmt, 3);
+            std::string firstname = (const char*)sqlite3_column_text(stmt, 1);
+            std::string lastname = (const char*)sqlite3_column_text(stmt, 2);
+            std::string nickname = (const char*)sqlite3_column_text(stmt, 3);
 
             buffer.push_back(std::make_pair(id, naming(firstname, lastname, nickname)));
 
@@ -441,6 +452,7 @@ Entity Database::Get(const int id) {
     sqlite3_finalize(stmt);
     sqlite3_close(db);
 
+    p.addresses = GetAddresses(id);
     p.contacts = GetContacts(id);
 
 #pragma region GET NOTES   
@@ -466,6 +478,40 @@ Entity Database::Get(const int id) {
 
     error = error::code::NONE;
     return p;
+}
+
+std::vector<Address> Database::GetAddresses(const int id) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return {};
+    }
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return {};
+    }
+
+    const char* query = "SELECT * FROM addresses WHERE owner_id = ?;";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+
+    sqlite3_bind_int(stmt, 1, id);
+
+    std::vector<Address> addresses;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        Address a{
+            (const char*)sqlite3_column_text(stmt, 1),
+            (const char*)sqlite3_column_text(stmt, 2)
+        };
+        addresses.push_back(a);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    error = error::code::NONE;
+    return addresses;
 }
 
 std::vector<Contact> Database::GetContacts(const int id) {
@@ -695,6 +741,150 @@ bool Database::SetStatus(const int id, const Entity::Status v) {
 
     error = error::code::NONE;
     return true;
+}
+
+bool Database::AddAddress(const int id, const std::string& title, const std::string& address) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return false;
+    }
+
+    if (ExistAddress(id, title)) {
+        error = error::code::EXISTING_ADDRESS;
+        return false;
+    }
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK)
+        return false;
+
+    const char* query = "INSERT INTO addresses (owner_id, title, detail) VALUES (?, ?, ?);";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_text(stmt, 2, title.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, address.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    error = error::code::NONE;
+    return true;
+}
+
+bool Database::SetAddress(const int id, const std::string& title, const std::string& address) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return false;
+    }
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return false;
+    }
+
+    const char* query = "UPDATE addresses SET detail = ? WHERE owner_id = ? AND title = ?";
+    sqlite3_stmt* stmt;
+    sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
+
+    sqlite3_bind_text(stmt, 1, address.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 2, id);
+    sqlite3_bind_text(stmt, 3, title.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    error = error::code::NONE;
+    return true;
+}
+
+std::string Database::RemoveAddress(const int id, const std::string& title) {
+    if (!ExistID(id)) {
+        error = error::code::INVALID_ID;
+        return "";
+    }
+
+    std::string address;
+
+#pragma region FETCH ADDRESS
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return address;
+    }
+
+    const char* query = "SELECT * FROM addresses WHERE owner_id = ? AND title = ?;";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        return address;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_text(stmt, 2, title.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW)
+        address = (const char*)sqlite3_column_text(stmt, 2);
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+#pragma endregion
+
+#pragma region REMOVE
+    rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK) {
+        error = error::code::CANNOT_OPEN_DATABASE;
+        return address;
+    }
+
+    query = "DELETE FROM addresses WHERE owner_id = ? AND title = ?;";
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return address;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_text(stmt, 2, title.c_str(), -1, SQLITE_STATIC);
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        sqlite3_close(db);
+        error = error::code::SQL;
+        return address;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+#pragma endregion
+
+    error = error::code::NONE;
+    return address;
 }
 
 bool Database::AddContact(const int id, const Contact::Type type, const std::string& username, const std::string& password) {
@@ -944,6 +1134,37 @@ bool Database::ExistID(const int id) {
     }
 
     sqlite3_bind_int(stmt, 1, id);
+
+    int n = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        n = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return n > 0;
+}
+
+bool Database::ExistAddress(const int id, const std::string& title) {
+    if (!ExistID(id)) {
+        return false;
+    }
+
+    int rc = sqlite3_open(path.c_str(), &db);
+    if (rc != SQLITE_OK)
+        return false;
+
+    const char* query = "SELECT COUNT(*) FROM addresses WHERE owner_id = ? AND title = ?";
+    sqlite3_stmt* stmt;
+    rc = sqlite3_prepare_v2(db, query, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        sqlite3_close(db);
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, id);
+    sqlite3_bind_text(stmt, 2, title.c_str(), -1, SQLITE_STATIC);
 
     int n = 0;
     if (sqlite3_step(stmt) == SQLITE_ROW) {

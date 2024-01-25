@@ -44,6 +44,11 @@ namespace error {
             hue::print(buff);
             hue::println(" parameter(s)");
             break;
+        case code::EXISTING_ADDRESS:
+            hue::print("address ");
+            hue::print(buff);
+            hue::println(" already exist");
+            break;
         case code::INVALID_ID:
             hue::println("invalid id");
             break;
